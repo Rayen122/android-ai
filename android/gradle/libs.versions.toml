@@ -1,0 +1,49 @@
+[versions]
+agp = "8.13.0"
+kotlin = "1.9.0"
+androidx-core = "1.13.1"
+androidx-runtime = "2.8.4"
+compose-activity = "1.9.1"
+compose-bom = "2024.06.00"
+compose-navigation = "2.7.7"
+konfetti = "2.0.4"
+retrofit = "2.9.0"
+gson = "2.10.1"
+lottie = "5.2.0"
+media3-exoplayer = "1.5.1"
+media3-ui = "1.5.1"
+foundation = "1.9.4"
+runtime = "1.9.4"
+animation-core = "1.9.4"
+
+[libraries]
+androidx-core = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
+androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-runtime" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "compose-activity" }
+compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "compose-navigation" }
+
+konfetti = { group = "nl.dionsegijn", name = "konfetti-compose", version.ref = "konfetti" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3-exoplayer" }
+androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3-ui" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animation-core" }
+
+[bundles]
+androidX = ["androidx-core", "androidx-lifecycle"]
+ui = ["compose-ui", "compose-graphics", "compose-tooling-preview", "compose-activity", "androidx-material3", "konfetti", "compose-navigation"]
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
