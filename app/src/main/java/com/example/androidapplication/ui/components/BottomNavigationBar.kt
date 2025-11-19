@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -27,8 +29,10 @@ import com.example.androidapplication.ui.container.NavGraph
 fun BottomNavigationBar(navController: NavController) {
     val currentRoute = navController.currentDestination?.route ?: NavGraph.Home.route
     val isHomeSelected = currentRoute == NavGraph.Home.route
+    val isCameraSelected = currentRoute == NavGraph.Camera.route
+    val isAIEditorSelected = currentRoute == NavGraph.AIEditor.route
+    val isArtistSelected = currentRoute == NavGraph.ArtistList.route
     val isProfileSelected = currentRoute == NavGraph.Profile.route
-    val isArtistsSelected = currentRoute == NavGraph.ArtistList.route
 
     Box(
         modifier = Modifier
@@ -74,7 +78,91 @@ fun BottomNavigationBar(navController: NavController) {
                 )
             }
 
-            // Profile
+            // Camera
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(),
+                        onClick = {
+                            navController.navigate(NavGraph.Camera.route) {
+                                popUpTo(NavGraph.Home.route)
+                            }
+                        }
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.CameraAlt,
+                    contentDescription = "Camera",
+                    tint = if (isCameraSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = "Camera",
+                    fontSize = 12.sp,
+                    color = if (isCameraSelected) Color.White else Color.White.copy(alpha = 0.6f)
+                )
+            }
+
+            // AI Editor
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(),
+                        onClick = {
+                            navController.navigate(NavGraph.AIEditor.route) {
+                                popUpTo(NavGraph.Home.route)
+                            }
+                        }
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = "AI Editor",
+                    tint = if (isAIEditorSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = "AI Editor",
+                    fontSize = 12.sp,
+                    color = if (isAIEditorSelected) Color.White else Color.White.copy(alpha = 0.6f)
+                )
+            }
+
+            // Artist
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(),
+                        onClick = {
+                            navController.navigate(NavGraph.ArtistList.route) {
+                                popUpTo(NavGraph.Home.route)
+                            }
+                        }
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Palette,
+                    contentDescription = "Artist",
+                    tint = if (isArtistSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = "Artist",
+                    fontSize = 12.sp,
+                    color = if (isArtistSelected) Color.White else Color.White.copy(alpha = 0.6f)
+                )
+            }
+
+            // Profile (remplace History)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -99,34 +187,6 @@ fun BottomNavigationBar(navController: NavController) {
                     text = "Profile",
                     fontSize = 12.sp,
                     color = if (isProfileSelected) Color.White else Color.White.copy(alpha = 0.6f)
-                )
-            }
-
-            // Artists
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(),
-                        onClick = {
-                            navController.navigate(NavGraph.ArtistList.route) {
-                                popUpTo(NavGraph.Home.route)
-                            }
-                        }
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Palette,
-                    contentDescription = "Artists",
-                    tint = if (isArtistsSelected) Color.White else Color.White.copy(alpha = 0.6f),
-                    modifier = Modifier.size(24.dp)
-                )
-                Text(
-                    text = "Artists",
-                    fontSize = 12.sp,
-                    color = if (isArtistsSelected) Color.White else Color.White.copy(alpha = 0.6f)
                 )
             }
         }

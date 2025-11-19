@@ -1,8 +1,8 @@
 package com.example.androidapplication.ui.screen.home
 
 import android.util.Log
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.indication
@@ -31,11 +31,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.androidapplication.models.NotificationViewModel
@@ -49,6 +51,9 @@ import com.example.androidapplication.ui.container.NavGraph
 import com.example.androidapplication.ui.theme.PrimaryYellowDark
 import com.example.androidapplication.ui.theme.PrimaryYellowLight
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +73,7 @@ fun HomeScreen(
     val photos by photoViewModel.photos.observeAsState(initial = emptyList())
     val isLoading by photoViewModel.isLoading.observeAsState(initial = false)
     val uploadSuccess by photoViewModel.uploadSuccess.observeAsState(initial = false)
-    
+
     // Search state
     var searchQuery by remember { mutableStateOf("") }
     val filteredPhotos = remember(photos, searchQuery) {
@@ -80,7 +85,7 @@ fun HomeScreen(
             }
         }
     }
-    
+
     // Debug: Log photos when they change
     LaunchedEffect(photos) {
         Log.d("HomeScreen", "Photos updated: ${photos.size} photos")
@@ -88,7 +93,7 @@ fun HomeScreen(
             Log.d("HomeScreen", "Photo: id=${photo.id}, imageUrl=${photo.imageUrl}, title=${photo.title}")
         }
     }
-    
+
     // Get current route to reload when coming back to HomeScreen
     val currentRoute = navController.currentDestination?.route
     var previousRoute by remember { mutableStateOf<String?>(null) }
@@ -99,7 +104,7 @@ fun HomeScreen(
         notificationViewModel.getUnreadCount()
         profileViewModel.fetchUserData()
     }
-    
+
     // Reload photos and user data when returning to HomeScreen from another screen
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavGraph.Home.route && previousRoute != null && previousRoute != NavGraph.Home.route) {
@@ -109,7 +114,7 @@ fun HomeScreen(
         }
         previousRoute = currentRoute
     }
-    
+
     // Reload photos when a new photo is uploaded successfully
     LaunchedEffect(uploadSuccess) {
         if (uploadSuccess) {
@@ -122,7 +127,7 @@ fun HomeScreen(
             photoViewModel.clearUploadSuccess()
         }
     }
-    
+
     // Refresh notification count when returning to HomeScreen
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavGraph.Home.route) {
@@ -140,23 +145,222 @@ fun HomeScreen(
         }
     }
 
+    // Animation states
+    var headerVisible by remember { mutableStateOf(false) }
+    var searchVisible by remember { mutableStateOf(false) }
+    
+    // Multiple animated gradients for dynamic background - animations plus lentes
+    val infiniteTransition = rememberInfiniteTransition(label = "gradient")
+    val gradientOffset1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "gradientOffset1"
+    )
+    val gradientOffset2 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "gradientOffset2"
+    )
+    
+    // Floating particles animation - plus lente
+    val particleOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(15000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "particleOffset"
+    )
+    
+    // Pulsing effect for decorative elements - plus subtil
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.98f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+    
+    // Wave animation for dynamic background - plus lente
+    val waveOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "waveOffset"
+    )
+    
+    // Glow pulse animation - plus subtil
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.7f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowPulse"
+    )
+    
+    LaunchedEffect(Unit) {
+        delay(100)
+        headerVisible = true
+        delay(200)
+        searchVisible = true
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    0f to PrimaryYellowDark,
-                    0.6f to PrimaryYellowLight,
-                    1f to PrimaryYellowLight,
+                    colors = listOf(
+                        Color(0xFF0F0F1E),
+                        Color(0xFF1A1A2E),
+                        Color(0xFF16213E),
+                        PrimaryYellowDark.copy(alpha = 0.3f + gradientOffset1 * 0.2f)
+                    ),
+                    startY = 0f,
+                    endY = Float.POSITIVE_INFINITY
                 )
             )
     ) {
+        // Animated decorative elements
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Top right animated circle - mouvement réduit
+            val topCircleX = 50.dp + (gradientOffset1 * 15).dp
+            val topCircleY = (-50).dp + (gradientOffset2 * 10).dp
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(200.dp + (gradientOffset1 * 15).dp)
+                    .offset(x = topCircleX, y = topCircleY)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                PrimaryYellowDark.copy(alpha = 0.25f + gradientOffset1 * 0.1f),
+                                PrimaryYellowLight.copy(alpha = 0.15f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+                    .graphicsLayer(alpha = 0.6f + gradientOffset1 * 0.1f)
+            )
+            
+            // Bottom left animated circle - mouvement réduit
+            val bottomCircleX = (-30).dp - (gradientOffset2 * 10).dp
+            val bottomCircleY = 100.dp + (gradientOffset1 * 15).dp
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .size(160.dp + (gradientOffset2 * 20).dp)
+                    .offset(x = bottomCircleX, y = bottomCircleY)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                PrimaryYellowLight.copy(alpha = 0.2f + gradientOffset2 * 0.1f),
+                                PrimaryYellowDark.copy(alpha = 0.1f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+                    .graphicsLayer(alpha = 0.5f + gradientOffset2 * 0.15f)
+            )
+            
+            // Enhanced floating particles effect with variety - réduit
+            repeat(8) { index ->
+                val angle = (particleOffset + index * 45f) * (kotlin.math.PI / 180f)
+                val radius = 100.dp + (gradientOffset1 * 40).dp + (index * 8).dp
+                val particleX = (cos(angle) * radius.value).dp
+                val particleY = (sin(angle) * radius.value).dp
+                val particleSize = (5.dp + (gradientOffset1 * 3).dp + ((index % 3) * 1.5).dp)
+                val particleAlpha = (0.25f + glowPulse * 0.15f - (index * 0.02f)).coerceIn(0.15f, 0.5f)
+                
+                // Varying colors for particles
+                val particleColor = when (index % 4) {
+                    0 -> PrimaryYellowLight
+                    1 -> PrimaryYellowDark
+                    2 -> Color.White.copy(alpha = 0.6f)
+                    else -> PrimaryYellowLight.copy(alpha = 0.8f)
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(particleSize)
+                        .offset(x = particleX, y = particleY)
+                        .background(
+                            particleColor.copy(alpha = particleAlpha),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        )
+                        .graphicsLayer(
+                            alpha = particleAlpha,
+                            scaleX = pulseScale,
+                            scaleY = pulseScale
+                        )
+                        .shadow(
+                            elevation = 2.dp,
+                            shape = androidx.compose.foundation.shape.CircleShape,
+                            spotColor = particleColor.copy(alpha = 0.3f)
+                        )
+                )
+            }
+            
+            // Additional wave effect layers - plus subtiles
+            repeat(2) { waveIndex ->
+                val waveY = (waveOffset * 150f + waveIndex * 80f) % 300f
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.5.dp)
+                        .offset(y = waveY.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    PrimaryYellowLight.copy(alpha = 0.15f - waveIndex * 0.05f),
+                                    PrimaryYellowDark.copy(alpha = 0.1f - waveIndex * 0.03f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                        .graphicsLayer(alpha = 0.3f - waveIndex * 0.1f)
+                )
+            }
+        }
+        
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Header with user name, notification, and logout
-            Row(
+            // Animated Header with user name, notification, and logout
+            AnimatedVisibility(
+                visible = headerVisible,
+                enter = fadeIn(animationSpec = tween(600)) + 
+                        slideInVertically(
+                            initialOffsetY = { -it / 2 },
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        )
+            ) {
+                Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
@@ -166,11 +370,15 @@ fun HomeScreen(
             ) {
                 // Display user name from backend (saved during signup)
                 Text(
-                    text = userData?.name.orEmpty(),
+                    text = "Welcome ${userData?.name.orEmpty()}",
                     fontSize = 15.sp,
-                    color = Color.Black,
+                    color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.2.sp
+                    letterSpacing = 0.2.sp,
+                    modifier = Modifier
+                        .graphicsLayer(
+                            alpha = 0.95f + gradientOffset1 * 0.05f
+                        )
                 )
 
 
@@ -179,7 +387,7 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Notification Button - Circular with light brown background
+                    // Notification Button - avec effet glow
                     Box {
                         Box(
                             modifier = Modifier
@@ -192,13 +400,13 @@ fun HomeScreen(
                                     }
                                 )
                                 .background(
-                                    Color(0xFFD4A574), // Light brown color
+                                    PrimaryYellowDark.copy(alpha = 0.9f + glowPulse * 0.1f),
                                     shape = androidx.compose.foundation.shape.CircleShape
                                 )
                                 .shadow(
-                                    elevation = 2.dp,
+                                    elevation = 8.dp,
                                     shape = androidx.compose.foundation.shape.CircleShape,
-                                    spotColor = Color.Black.copy(alpha = 0.1f)
+                                    spotColor = PrimaryYellowDark.copy(alpha = glowPulse * 0.4f)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
@@ -214,90 +422,85 @@ fun HomeScreen(
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
-                                    .size(12.dp)
+                                    .size(14.dp)
                                     .background(
                                         Color(0xFFFF0000), // Red color
+                                        shape = androidx.compose.foundation.shape.CircleShape
+                                    )
+                                    .shadow(
+                                        elevation = 2.dp,
                                         shape = androidx.compose.foundation.shape.CircleShape
                                     )
                             )
                         }
                     }
-
-                    // Logout Button - Circular with light brown background
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = rememberRipple(bounded = false),
-                                onClick = {
-                val refreshToken = getRefreshToken(context)
-                if (refreshToken != null) {
-                                        logoutViewModel.logout(refreshToken, context)
-                                    }
-                                }
-                            )
-                            .background(
-                                Color(0xFFD4A574), // Light brown color
-                                shape = androidx.compose.foundation.shape.CircleShape
-                            )
-                            .shadow(
-                                elevation = 2.dp,
-                                shape = androidx.compose.foundation.shape.CircleShape,
-                                spotColor = Color.Black.copy(alpha = 0.1f)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ExitToApp,
-                            contentDescription = "Logout",
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                }
                 }
             }
 
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 20.dp)
-                    .shadow(
-                        elevation = 2.dp,
-                        shape = RoundedCornerShape(16.dp),
-                        spotColor = Color.Black.copy(alpha = 0.1f)
+            // Animated Search Bar with modern design
+            AnimatedVisibility(
+                visible = searchVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 100)) + 
+                        slideInVertically(
+                            initialOffsetY = { 20 },
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        )
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .padding(bottom = 20.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(20.dp),
+                            spotColor = PrimaryYellowDark.copy(alpha = 0.3f)
+                        ),
+                    placeholder = {
+                        Text(
+                            text = "Rechercher par nom d'utilisateur",
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontSize = 15.sp
+                        )
+                    },
+                    leadingIcon = {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    PrimaryYellowDark.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = PrimaryYellowDark,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = PrimaryYellowDark,
+                        unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                        containerColor = Color.Transparent,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White.copy(alpha = 0.9f)
                     ),
-                placeholder = {
-                    Text(
-                        text = "Search by user name",
-                        color = Color.Gray.copy(alpha = 0.5f),
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = Color.White,
                         fontSize = 15.sp
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color.Gray.copy(alpha = 0.5f),
-                        modifier = Modifier.size(22.dp)
-                    )
-                },
-                shape = RoundedCornerShape(16.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color(0xFFFF9800),
-                    unfocusedBorderColor = Color.Transparent,
-                    containerColor = Color.White
-                ),
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    color = Color.Black,
-                    fontSize = 15.sp
-                ),
-                singleLine = true
-            )
+                    ),
+                    singleLine = true
+                )
+            }
 
             // Photos Grid
             Box(modifier = Modifier.weight(1f)) {
@@ -320,6 +523,10 @@ fun HomeScreen(
                         )
                     }
                 } else {
+                    val sortedPhotos = remember(filteredPhotos) {
+                        filteredPhotos.sortedByDescending { it.createdAt ?: "" }
+                    }
+                    
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -330,16 +537,16 @@ fun HomeScreen(
                         contentPadding = PaddingValues(bottom = 100.dp, top = 4.dp)
                     ) {
                         items(
-                            items = filteredPhotos.sortedByDescending { 
-                                it.createdAt ?: ""
-                            },
-                            key = { photo -> photo.id }
-                        ) { photo ->
+                            count = sortedPhotos.size,
+                            key = { index -> sortedPhotos[index].id }
+                        ) { index ->
+                            val photo = sortedPhotos[index]
                             PhotoCard(
                                 photo = photo,
-                                onClick = { 
+                                onClick = {
                                     navController.navigate("${NavGraph.PhotoDetail.route}/${photo.id}")
-                                }
+                                },
+                                index = index
                             )
                         }
                     }
@@ -353,99 +560,74 @@ fun HomeScreen(
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoCard(
     photo: Photo,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    index: Int = 0
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    var isVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(index * 50L)
+        isVisible = true
+    }
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = fadeIn(animationSpec = tween(400)) +
+                scaleIn(
+                    initialScale = 0.9f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
     ) {
-        // Image Card with enhanced shadow
-        Card(
+        val interactionSource = remember { MutableInteractionSource() }
+        val isPressed by interactionSource.collectIsPressedAsState()
+        val cardScale by animateFloatAsState(
+            targetValue = if (isPressed) 0.95f else 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessHigh
+            ),
+            label = "cardScale"
+        )
+
+        // Simple card style like the capture - just image with rounded corners
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .aspectRatio(1f) // Square aspect ratio like in the capture
+                .scale(cardScale)
+                .clip(RoundedCornerShape(12.dp))
                 .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(),
+                    interactionSource = interactionSource,
+                    indication = rememberRipple(
+                        color = Color.White.copy(alpha = 0.3f),
+                        bounded = true
+                    ),
                     onClick = onClick
                 )
                 .shadow(
-                    elevation = 8.dp,
-                    shape = RoundedCornerShape(20.dp),
-                    spotColor = Color.Black.copy(alpha = 0.12f),
-                    ambientColor = Color.Black.copy(alpha = 0.06f)
-                ),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 0.dp // Using shadow modifier instead
-            )
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(12.dp),
+                    spotColor = Color.Black.copy(alpha = 0.2f)
+                )
         ) {
-            // Image with fixed aspect ratio
+            // Image with rounded corners - simple style
             AsyncImage(
                 model = photo.imageUrl,
                 contentDescription = photo.title ?: "Photo",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.75f) // 3:4 aspect ratio
-                    .clip(RoundedCornerShape(20.dp)),
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),
                 error = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_report_image)
             )
-        }
-
-        // User button with icon - Simple design matching image
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(bounded = true),
-                    onClick = onClick
-                )
-                .shadow(
-                    elevation = 2.dp,
-                    shape = RoundedCornerShape(12.dp),
-                    spotColor = Color.Black.copy(alpha = 0.06f),
-                    ambientColor = Color.Black.copy(alpha = 0.03f)
-                ),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 0.dp
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Simple yellow person icon (no background box)
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "User",
-                    tint = Color(0xFFFFE7BA), // Yellow color
-                    modifier = Modifier.size(20.dp)
-                )
-
-                // User name
-                Text(
-                    text = photo.userName ?: "User",
-                    fontSize = 13.sp,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.weight(1f)
-                )
-            }
         }
     }
 }

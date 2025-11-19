@@ -14,8 +14,19 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,16 +43,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.androidapplication.models.PhotoViewModel
 import com.example.androidapplication.models.ProfileViewModel
 import com.example.androidapplication.models.login.getAccessToken
+import com.example.androidapplication.models.login.getRefreshToken
+import com.example.androidapplication.models.logout.LogoutState
+import com.example.androidapplication.models.logout.LogoutViewModel
 import com.example.androidapplication.ui.components.BackButton
 import com.example.androidapplication.ui.components.BottomNavigationBar
 import com.example.androidapplication.ui.container.NavGraph
+import com.example.androidapplication.ui.theme.PrimaryYellowDark
+import com.example.androidapplication.ui.theme.PrimaryYellowLight
+import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -51,6 +72,8 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val token = getAccessToken(context)
+    val logoutViewModel = remember { LogoutViewModel() }
+    val logoutState by logoutViewModel.logoutState.collectAsState()
 
     // Profile data
     val userData by profileViewModel.userData.observeAsState()
@@ -89,7 +112,7 @@ fun ProfileScreen(
 
     // Load profile and photos on first appearance
     LaunchedEffect(Unit) {
-        if (!token.isNullOrEmpty()) {
+    if (!token.isNullOrEmpty()) {
             profileViewModel.fetchUserData()
         }
     }
@@ -128,251 +151,624 @@ fun ProfileScreen(
         }
     }
 
-    // Gradient background matching iOS
+    // Handle logout
+    LaunchedEffect(logoutState) {
+        if (logoutState is LogoutState.Success) {
+            // Navigate to Welcome screen and clear entire back stack
+            navController.navigate(NavGraph.Welcome.route) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
+    // Multiple animated gradients for dynamic background - animations plus lentes
+    val infiniteTransition = rememberInfiniteTransition(label = "gradient")
+    val gradientOffset1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "gradientOffset1"
+    )
+    val gradientOffset2 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "gradientOffset2"
+    )
+    
+    // Floating particles animation - plus lente
+    val particleOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(15000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "particleOffset"
+    )
+    
+    // Pulsing effect for decorative elements - plus subtil
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.98f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+    
+    // Wave animation for dynamic background - plus lente
+    val waveOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "waveOffset"
+    )
+    
+    // Glow pulse animation - plus subtil
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.7f,
+        targetValue = 0.9f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowPulse"
+    )
+    
+    // Animation states
+    var headerVisible by remember { mutableStateOf(false) }
+    var contentVisible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        delay(200)
+        headerVisible = true
+        delay(300)
+        contentVisible = true
+    }
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFFE6B3), // #FFE6B3 - light orange/yellow
-                        Color(0xFFFCD48A), // #FCD48A - medium orange/yellow
-                        Color(0xFFF2C14F)  // #F2C14F - darker orange/yellow
+                        Color(0xFF0F0F1E),
+                        Color(0xFF1A1A2E),
+                        Color(0xFF16213E),
+                        PrimaryYellowDark.copy(alpha = 0.3f + gradientOffset1 * 0.2f)
+                    ),
+                    startY = 0f,
+                    endY = Float.POSITIVE_INFINITY
                 )
             )
-            )
     ) {
+        // Animated decorative elements
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Top right animated circle - mouvement réduit
+            val topCircleX = 50.dp + (gradientOffset1 * 15).dp
+            val topCircleY = (-50).dp + (gradientOffset2 * 10).dp
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(200.dp + (gradientOffset1 * 15).dp)
+                    .offset(x = topCircleX, y = topCircleY)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                PrimaryYellowDark.copy(alpha = 0.25f + gradientOffset1 * 0.1f),
+                                PrimaryYellowLight.copy(alpha = 0.15f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+                    .graphicsLayer(alpha = 0.6f + gradientOffset1 * 0.1f)
+            )
+            
+            // Bottom left animated circle - mouvement réduit
+            val bottomCircleX = (-30).dp - (gradientOffset2 * 10).dp
+            val bottomCircleY = 100.dp + (gradientOffset1 * 15).dp
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .size(160.dp + (gradientOffset2 * 20).dp)
+                    .offset(x = bottomCircleX, y = bottomCircleY)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                PrimaryYellowLight.copy(alpha = 0.2f + gradientOffset2 * 0.1f),
+                                PrimaryYellowDark.copy(alpha = 0.1f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = androidx.compose.foundation.shape.CircleShape
+                    )
+                    .graphicsLayer(alpha = 0.5f + gradientOffset2 * 0.15f)
+            )
+            
+            // Enhanced floating particles effect with variety - réduit
+            repeat(8) { index ->
+                val angle = (particleOffset + index * 45f) * (kotlin.math.PI / 180f)
+                val radius = 100.dp + (gradientOffset1 * 40).dp + (index * 8).dp
+                val particleX = (cos(angle) * radius.value).dp
+                val particleY = (sin(angle) * radius.value).dp
+                val particleSize = (5.dp + (gradientOffset1 * 3).dp + ((index % 3) * 1.5).dp)
+                val particleAlpha = (0.25f + glowPulse * 0.15f - (index * 0.02f)).coerceIn(0.15f, 0.5f)
+                
+                // Varying colors for particles
+                val particleColor = when (index % 4) {
+                    0 -> PrimaryYellowLight
+                    1 -> PrimaryYellowDark
+                    2 -> Color.White.copy(alpha = 0.6f)
+                    else -> PrimaryYellowLight.copy(alpha = 0.8f)
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(particleSize)
+                        .offset(x = particleX, y = particleY)
+                        .background(
+                            particleColor.copy(alpha = particleAlpha),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        )
+                        .graphicsLayer(
+                            alpha = particleAlpha,
+                            scaleX = pulseScale,
+                            scaleY = pulseScale
+                        )
+                        .shadow(
+                            elevation = 2.dp,
+                            shape = androidx.compose.foundation.shape.CircleShape,
+                            spotColor = particleColor.copy(alpha = 0.3f)
+                        )
+                )
+            }
+            
+            // Additional wave effect layers - plus subtiles
+            repeat(2) { waveIndex ->
+                val waveY = (waveOffset * 150f + waveIndex * 80f) % 300f
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.5.dp)
+                        .offset(y = waveY.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    PrimaryYellowLight.copy(alpha = 0.15f - waveIndex * 0.05f),
+                                    PrimaryYellowDark.copy(alpha = 0.1f - waveIndex * 0.03f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                        .graphicsLayer(alpha = 0.3f - waveIndex * 0.1f)
+                )
+            }
+        }
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 24.dp)
         ) {
-            // Back button at top
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 50.dp, bottom = 20.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BackButton(navController = navController)
-            }
-
-            // Profile Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Profile Picture
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.3f))
-                ) {
-                    // You can add profile image here if available
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(20.dp),
-                        tint = Color.White.copy(alpha = 0.9f)
+            // Animated Back button and Profile Header
+            AnimatedVisibility(
+                visible = headerVisible,
+                enter = slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
                     )
-                }
-
-                // Stats
+                ) + fadeIn(animationSpec = tween(800)),
+                exit = fadeOut()
+            ) {
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = userData?.name ?: "User",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-
+                    // Back button and Logout button at top
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(24.dp)
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "${myPhotos.size}",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Publications",
-                                fontSize = 14.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "0",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Abonnés",
-                                fontSize = 14.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "0",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                Text(
-                                text = "Abonnements",
-                                fontSize = 14.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Photo Upload Section
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                // Selected Image Preview
-                selectedBitmap?.let { bitmap ->
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Selected photo",
                         modifier = Modifier
-                            .size(200.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                // Upload Button
-            Button(
-                onClick = {
-                        if (selectedBitmap != null) {
-                            showUploadScreen = true
-                        } else {
-                            imagePickerLauncher.launch("image/*")
-                        }
-                },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(55.dp)
-                        .padding(horizontal = 50.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White
-                    )
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            .fillMaxWidth()
+                            .padding(top = 56.dp, bottom = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = if (selectedBitmap == null)
-                                Icons.Default.Add
-                            else
-                                Icons.Default.Upload,
-                            contentDescription = null,
-                            tint = Color(0xFF5A4A3A)
-                        )
-                        Text(
-                            text = if (selectedBitmap == null) "Ajouter une photo" else "Publier la photo",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF5A4A3A)
-                        )
+                        BackButton(navController = navController)
+                        
+                        // Logout Button - Circular with glow effect
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = rememberRipple(bounded = false),
+                                    onClick = {
+                                        val refreshToken = getRefreshToken(context)
+                                        if (refreshToken != null) {
+                                            logoutViewModel.logout(refreshToken, context)
+                                        }
+                                    }
+                                )
+                                .background(
+                                    PrimaryYellowDark.copy(alpha = 0.9f),
+                                    shape = androidx.compose.foundation.shape.CircleShape
+                                )
+                                .shadow(
+                                    elevation = 8.dp,
+                                    shape = androidx.compose.foundation.shape.CircleShape,
+                                    spotColor = PrimaryYellowDark.copy(alpha = 0.4f)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ExitToApp,
+                                contentDescription = "Logout",
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
-                }
-            }
 
-            // Success Message
-            if (uploadSuccess) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.Green.copy(alpha = 0.6f)
-                    )
-                ) {
-                    Text(
-                        text = "Photo ajoutée avec succès !",
-                        modifier = Modifier.padding(16.dp),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
+                    // Modern Profile Header - sans cadre
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Profile Picture with modern style
+                            Box(
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.radialGradient(
+                                            colors = listOf(
+                                                PrimaryYellowDark.copy(alpha = 0.3f),
+                                                PrimaryYellowLight.copy(alpha = 0.2f)
+                                            )
+                                        )
+                                    )
+                                    .shadow(8.dp, shape = CircleShape)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            PrimaryYellowDark.copy(alpha = 0.15f),
+                                            shape = CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Person,
+                                        contentDescription = "Profile",
+                                        modifier = Modifier.size(50.dp),
+                                        tint = PrimaryYellowDark
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                text = userData?.name ?: "Utilisateur",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White,
+                                letterSpacing = 0.5.sp,
+                                modifier = Modifier
+                                    .graphicsLayer(
+                                        alpha = 0.95f + gradientOffset1 * 0.05f
+                                    )
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            // Stats Row
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "${myPhotos.size}",
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Publications",
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "0",
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Abonnés",
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "0",
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Abonnements",
+                                        fontSize = 14.sp,
+                                        color = Color.White.copy(alpha = 0.8f),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // My Photos Grid
-            Box(modifier = Modifier.weight(1f)) {
-                Column(
-                modifier = Modifier.fillMaxWidth()
+            // Modern Photo Upload Section
+            AnimatedVisibility(
+                visible = contentVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 200)) +
+                        slideInVertically(
+                            initialOffsetY = { 20 },
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        )
             ) {
-                    Text(
-                        text = "Mes publications",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        // Selected Image Preview
+                        selectedBitmap?.let { bitmap ->
+                            Box(
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .shadow(
+                                        elevation = 8.dp,
+                                        shape = RoundedCornerShape(16.dp),
+                                        spotColor = PrimaryYellowDark.copy(alpha = 0.3f)
+                                    )
+                                    .clip(RoundedCornerShape(16.dp))
+                            ) {
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "Selected photo",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
 
-                    if (isLoadingPhotos) {
-                        CircularProgressIndicator(
+                        // Modern Upload Button
+                        val buttonInteractionSource = remember { MutableInteractionSource() }
+                        val isPressed by buttonInteractionSource.collectIsPressedAsState()
+                        val buttonScale by animateFloatAsState(
+                            targetValue = if (isPressed) 0.95f else 1f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessHigh
+                            ),
+                            label = "buttonScale"
+                        )
+                        
+                        val buttonElevation by animateFloatAsState(
+                            targetValue = if (isPressed) 4f else 12f,
+                            animationSpec = tween(200),
+                            label = "buttonElevation"
+                        )
+                        
+                        Button(
+                            onClick = {
+                                if (selectedBitmap != null) {
+                                    showUploadScreen = true
+                                } else {
+                                    imagePickerLauncher.launch("image/*")
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(32.dp),
-                            color = Color.White
-                        )
-                    } else if (myPhotos.isEmpty()) {
-                        Text(
-                            text = "Aucune publication",
-                            color = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(16.dp)
-                        )
-                    } else {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(3),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(bottom = 100.dp)
+                                .height(56.dp)
+                                .scale(buttonScale)
+                                .shadow(buttonElevation.dp, RoundedCornerShape(16.dp)),
+                            interactionSource = buttonInteractionSource,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryYellowDark,
+                                contentColor = Color.White
+                            )
                         ) {
-                            items(
-                                items = myPhotos,
-                                key = { photo -> photo.id }
-                            ) { photo ->
-                                AsyncImage(
-                                    model = photo.imageUrl,
-                                    contentDescription = photo.title ?: "Photo",
-                                    modifier = Modifier
-                                        .aspectRatio(1f)
-                                        .clip(RoundedCornerShape(4.dp)),
-                                    contentScale = ContentScale.Crop,
-                                    placeholder = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),
-                                    error = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_report_image)
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (selectedBitmap == null)
+                                        Icons.Default.Add
+                                    else
+                                        Icons.Default.Upload,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Text(
+                                    text = if (selectedBitmap == null) "Ajouter une photo" else "Publier la photo",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp
                                 )
                             }
                         }
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Success Message
+            AnimatedVisibility(
+                visible = uploadSuccess,
+                enter = fadeIn(animationSpec = tween(400)) + slideInVertically(),
+                exit = fadeOut(animationSpec = tween(400))
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(8.dp, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF00C853).copy(alpha = 0.9f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Text(
+                        text = "Photo ajoutée avec succès !",
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // My Photos Grid with modern design
+            AnimatedVisibility(
+                visible = contentVisible,
+                enter = fadeIn(animationSpec = tween(600, delayMillis = 400)) +
+                        slideInVertically(
+                            initialOffsetY = { 30 },
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Mes publications",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        letterSpacing = 0.5.sp,
+                        modifier = Modifier.padding(bottom = 16.dp, start = 4.dp)
+                    )
+
+                        if (isLoadingPhotos) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = PrimaryYellowDark
+                                )
+                            }
+                        } else if (myPhotos.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Aucune publication",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        } else {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(3),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(bottom = 100.dp)
+                            ) {
+                                items(
+                                    items = myPhotos,
+                                    key = { photo -> photo.id }
+                                ) { photo ->
+                                    Box(
+                                        modifier = Modifier
+                                            .aspectRatio(1f)
+                                            .shadow(
+                                                elevation = 4.dp,
+                                                shape = RoundedCornerShape(12.dp),
+                                                spotColor = PrimaryYellowDark.copy(alpha = 0.3f)
+                                            )
+                                            .clip(RoundedCornerShape(12.dp))
+                                    ) {
+                                        AsyncImage(
+                                            model = photo.imageUrl,
+                                            contentDescription = photo.title ?: "Photo",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                            placeholder = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),
+                                            error = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_report_image)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                 }
             }
 
@@ -400,3 +796,4 @@ fun ProfileScreen(
         )
     }
 }
+

@@ -20,5 +20,11 @@ sealed class NavGraph(val route: String) {
     data object Notifications: NavGraph(route = "notifications_screen")
     
     data object PhotoDetail: NavGraph(route = "photo_detail_screen")
+    
+    data object Camera: NavGraph(route = "camera_screen")
+    
+    data object AIEditor: NavGraph(route = "ai_editor_screen")
+    
+    data object Album: NavGraph(route = "album_screen")
 
 }
