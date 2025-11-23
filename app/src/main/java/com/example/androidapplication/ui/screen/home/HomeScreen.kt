@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.*
 import com.example.androidapplication.ui.components.BottomNavigationBar
@@ -77,10 +78,14 @@ fun HomeScreen(
     // Search state
     var searchQuery by remember { mutableStateOf("") }
     val filteredPhotos = remember(photos, searchQuery) {
+        val regularPhotos = photos.filter { photo -> 
+            photo.description?.contains("Created with Magic Paintbrush") != true 
+        }
+        
         if (searchQuery.isBlank()) {
-            photos
+            regularPhotos
         } else {
-            photos.filter { photo ->
+            regularPhotos.filter { photo ->
                 photo.userName?.contains(searchQuery, ignoreCase = true) == true
             }
         }
@@ -555,6 +560,21 @@ fun HomeScreen(
 
             // Bottom Navigation Bar
             BottomNavigationBar(navController = navController)
+        }
+
+        // Avatar Generator FAB
+        FloatingActionButton(
+            onClick = { navController.navigate(NavGraph.AvatarGenerator.route) },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 90.dp, end = 20.dp), // Above bottom nav
+            containerColor = PrimaryYellowLight,
+            contentColor = Color.Black
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Avatar Generator"
+            )
         }
     }
 

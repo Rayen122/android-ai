@@ -3,6 +3,12 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">10.0.2.2</domain> <!-- Allow cleartext traffic to localhost -->
     </domain-config>
+    <!-- Allow HTTPS connections to external image services -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">image.pollinations.ai</domain>
+        <domain includeSubdomains="true">pollinations.ai</domain>
+        <domain includeSubdomains="true">picsum.photos</domain>
+    </domain-config>
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />

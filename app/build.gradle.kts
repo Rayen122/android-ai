@@ -58,6 +58,7 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0") // Add this line
     implementation ("com.google.android.gms:play-services-auth:20.7.0")
     implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.5.0") // Required for animated GIF support
 // Or the latest stable version
     // AndroidX
     implementation(libs.bundles.androidX)
@@ -65,7 +66,6 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation(libs.androidx.foundation)
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -74,7 +74,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.5.2")
     annotationProcessor("androidx.room:room-compiler:2.5.2")
     implementation(platform("androidx.compose:compose-bom:2024.06.00")) // Utilisez votre version de la BOM
-    implementation ("androidx.compose.material:material-icons-extended:<version>")
+    implementation ("androidx.compose.material:material-icons-extended")
     implementation ("androidx.compose.ui:ui-text") // <-- THIS IS CRUCIAL FOR KeyboardOptions
 
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0")
@@ -83,11 +83,7 @@ dependencies {
    // implementation ("androidx.core:core-ktx:1.9.0") // Check this version
    // implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation ("com.squareup.okhttp3:okhttp:4.9.3")
-    implementation("androidx.compose.foundation:foundation:1.5.0")  // Make sure you have this or a similar version
-// Add this line
-    implementation("androidx.compose.ui:ui:1.6.0") // Pour utiliser les fonctionnalités Canvas et DrawScope
-    implementation("androidx.compose.foundation:foundation:1.6.0") // Pour Canvas
-    implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.foundation:foundation")
     // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -97,4 +93,6 @@ dependencies {
         implementation(platform(libs.compose.bom))
     debugImplementation(libs.compose.tooling)
     implementation(libs.bundles.ui)
+    implementation("androidx.media3:media3-exoplayer:1.2.0")
+    implementation("androidx.media3:media3-ui:1.2.0")
 }

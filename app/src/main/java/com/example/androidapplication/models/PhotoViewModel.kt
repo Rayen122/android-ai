@@ -35,6 +35,17 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
     private val _uploadSuccess = MutableLiveData<Boolean>()
     val uploadSuccess: LiveData<Boolean> get() = _uploadSuccess
 
+    private val _isConvertingSketch = MutableLiveData<Boolean>()
+    val isConvertingSketch: LiveData<Boolean> get() = _isConvertingSketch
+
+    private val _sketchImageUrl = MutableLiveData<String?>()
+    val sketchImageUrl: LiveData<String?> get() = _sketchImageUrl
+
+    private val _convertedImageUrl = MutableLiveData<String?>()
+    val convertedImageUrl: LiveData<String?> get() = _convertedImageUrl
+
+    private var sketchConversionJob: kotlinx.coroutines.Job? = null
+
     fun getAllPhotos() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -103,7 +114,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun uploadPhoto(bitmap: Bitmap, title: String?, description: String?) {
+    fun uploadPhoto(bitmap: Bitmap, title: String?, description: String?, isPortfolio: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
             _uploadSuccess.value = false
@@ -117,19 +128,21 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 // Convert bitmap to file
                 val file = bitmapToFile(bitmap, getApplication())
-                
+
                 // Create multipart request body
                 val requestFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
                 val photoPart = MultipartBody.Part.createFormData("photo", file.name, requestFile)
 
                 val titleBody = title?.takeIf { it.isNotEmpty() }?.toRequestBody("text/plain".toMediaTypeOrNull())
                 val descriptionBody = description?.takeIf { it.isNotEmpty() }?.toRequestBody("text/plain".toMediaTypeOrNull())
+                val isPortfolioBody = if (isPortfolio) "true".toRequestBody("text/plain".toMediaTypeOrNull()) else null
 
                 val response: Response<UploadPhotoResponse> = RetrofitClient.photoInstance.uploadPhoto(
                     "Bearer $token",
                     photoPart,
                     titleBody,
-                    descriptionBody
+                    descriptionBody,
+                    isPortfolioBody
                 )
 
                 if (response.isSuccessful) {
@@ -172,6 +185,209 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clearUploadSuccess() {
         _uploadSuccess.value = false
+    }
+
+    fun convertToSketch(photo: Photo) {
+        // Annuler la conversion précédente si elle est en cours
+        sketchConversionJob?.cancel()
+
+        sketchConversionJob = viewModelScope.launch {
+            _isConvertingSketch.value = true
+            _error.value = ""
+            _sketchImageUrl.value = null
+
+            val token = getAccessToken(getApplication<Application>())
+            if (token.isNullOrEmpty()) {
+                _error.value = "Vous devez être connecté pour convertir la photo."
+                _isConvertingSketch.value = false
+                return@launch
+            }
+
+            try {
+                Log.d("PhotoViewModel", "Converting photo ${photo.id} to sketch...")
+
+                val response: retrofit2.Response<com.example.androidapplication.remote.ConvertToSketchResponse> =
+                    RetrofitClient.photoInstance.convertToSketch(
+                        "Bearer $token",
+                        photo.id
+                    )
+
+                Log.d("PhotoViewModel", "API response: code=${response.code()}, isSuccessful=${response.isSuccessful}")
+
+                if (response.isSuccessful) {
+                    val responseBody = try {
+                        response.body()
+                    } catch (e: Exception) {
+                        Log.e("PhotoViewModel", "Error parsing response body", e)
+                        null
+                    }
+
+                    if (responseBody == null) {
+                        Log.e("PhotoViewModel", "Response body is null")
+                        _error.value = "Réponse vide du serveur"
+                        return@launch
+                    }
+
+                    // Vérifier s'il y a une erreur dans la réponse
+                    if (!responseBody.error.isNullOrBlank()) {
+                        _error.value = "Erreur: ${responseBody.error}"
+                        Log.e("PhotoViewModel", "Error in response: ${responseBody.error}")
+                        return@launch
+                    }
+
+                    // Récupérer l'URL du croquis
+                    val sketchUrl = responseBody.sketch_url
+                    Log.d("PhotoViewModel", "Received sketch_url from backend: $sketchUrl")
+
+                    if (sketchUrl != null && sketchUrl.isNotBlank()) {
+                        val fixedUrl = sketchUrl.trim().replace("localhost", "10.0.2.2")
+                        Log.d("PhotoViewModel", "Fixed URL (after localhost replacement): $fixedUrl")
+
+                        // Vérifier que l'URL est valide
+                        if (fixedUrl.startsWith("http://") || fixedUrl.startsWith("https://")) {
+                            _sketchImageUrl.value = fixedUrl
+                            Log.d("PhotoViewModel", "Sketch URL set successfully: $fixedUrl")
+                            Log.d("PhotoViewModel", "sketchImageUrl LiveData value: ${_sketchImageUrl.value}")
+                        } else {
+                            _error.value = "URL de croquis invalide: $fixedUrl"
+                            Log.e("PhotoViewModel", "Invalid sketch URL format: $fixedUrl")
+                        }
+                    } else {
+                        _error.value = "Aucune image de croquis n'a pu être générée. Veuillez réessayer."
+                        Log.w("PhotoViewModel", "No sketch URL found in response. Response body: $responseBody")
+                    }
+                } else {
+                    val errorBody = try {
+                        response.errorBody()?.string()
+                    } catch (e: Exception) {
+                        null
+                    }
+                    _error.value = "Échec de la conversion en croquis (${response.code()}): ${response.message() ?: "Erreur inconnue"}"
+                    Log.e("PhotoViewModel", "Sketch conversion failed: ${response.code()} - $errorBody")
+                }
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de la conversion: ${e.localizedMessage ?: e.message ?: "Erreur inconnue"}"
+                Log.e("PhotoViewModel", "Error converting to sketch", e)
+                e.printStackTrace()
+            } finally {
+                _isConvertingSketch.value = false
+                sketchConversionJob = null
+            }
+        }
+    }
+
+    fun cancelSketchConversion() {
+        sketchConversionJob?.cancel()
+        sketchConversionJob = null
+        _isConvertingSketch.value = false
+        _error.value = "Conversion annulée"
+        Log.d("PhotoViewModel", "Sketch conversion cancelled")
+    }
+
+    fun clearSketchImage() {
+        _sketchImageUrl.value = null
+        _convertedImageUrl.value = null
+    }
+
+    fun convertToWatercolor(photo: Photo) {
+        convertImage(photo, "watercolor")
+    }
+
+    fun convertToVintage(photo: Photo) {
+        convertImage(photo, "vintage")
+    }
+
+    fun convertToBlackAndWhite(photo: Photo) {
+        convertImage(photo, "blackwhite")
+    }
+
+    fun convertToOilPainting(photo: Photo) {
+        convertImage(photo, "oil")
+    }
+
+    private fun convertImage(photo: Photo, style: String) {
+        sketchConversionJob?.cancel()
+
+        sketchConversionJob = viewModelScope.launch {
+            _isConvertingSketch.value = true
+            _error.value = ""
+            _sketchImageUrl.value = null
+            _convertedImageUrl.value = null
+
+            val token = getAccessToken(getApplication<Application>())
+            if (token.isNullOrEmpty()) {
+                _error.value = "Vous devez être connecté pour convertir la photo."
+                _isConvertingSketch.value = false
+                return@launch
+            }
+
+            try {
+                Log.d("PhotoViewModel", "Converting photo ${photo.id} to $style...")
+
+                val response: retrofit2.Response<com.example.androidapplication.remote.ConvertToSketchResponse> =
+                    RetrofitClient.photoInstance.convertImage(
+                        "Bearer $token",
+                        photo.id,
+                        style
+                    )
+
+                Log.d("PhotoViewModel", "API response: code=${response.code()}, isSuccessful=${response.isSuccessful}")
+
+                if (response.isSuccessful) {
+                    val responseBody = try {
+                        response.body()
+                    } catch (e: Exception) {
+                        Log.e("PhotoViewModel", "Error parsing response body", e)
+                        null
+                    }
+
+                    if (responseBody == null) {
+                        Log.e("PhotoViewModel", "Response body is null")
+                        _error.value = "Réponse vide du serveur"
+                        return@launch
+                    }
+
+                    if (!responseBody.error.isNullOrBlank()) {
+                        _error.value = "Erreur: ${responseBody.error}"
+                        Log.e("PhotoViewModel", "Error in response: ${responseBody.error}")
+                        return@launch
+                    }
+
+                    val convertedUrl = responseBody.sketch_url
+
+                    if (convertedUrl != null && convertedUrl.isNotBlank()) {
+                        val fixedUrl = convertedUrl.trim().replace("localhost", "10.0.2.2")
+
+                        if (fixedUrl.startsWith("http://") || fixedUrl.startsWith("https://")) {
+                            _convertedImageUrl.value = fixedUrl
+                            _sketchImageUrl.value = fixedUrl // Utiliser la même variable pour l'affichage
+                            Log.d("PhotoViewModel", "$style conversion successful: $fixedUrl")
+                        } else {
+                            _error.value = "URL invalide: $fixedUrl"
+                            Log.e("PhotoViewModel", "Invalid URL: $fixedUrl")
+                        }
+                    } else {
+                        _error.value = "Aucune image n'a pu être générée. Veuillez réessayer."
+                        Log.w("PhotoViewModel", "No converted URL found in response")
+                    }
+                } else {
+                    val errorBody = try {
+                        response.errorBody()?.string()
+                    } catch (e: Exception) {
+                        null
+                    }
+                    _error.value = "Échec de la conversion (${response.code()}): ${response.message() ?: "Erreur inconnue"}"
+                    Log.e("PhotoViewModel", "Conversion failed: ${response.code()} - $errorBody")
+                }
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de la conversion: ${e.localizedMessage ?: e.message ?: "Erreur inconnue"}"
+                Log.e("PhotoViewModel", "Error converting image", e)
+                e.printStackTrace()
+            } finally {
+                _isConvertingSketch.value = false
+                sketchConversionJob = null
+            }
+        }
     }
 }
 

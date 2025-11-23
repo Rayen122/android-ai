@@ -25,6 +25,12 @@ import com.example.androidapplication.ui.screen.notifications.NotificationsScree
 import com.example.androidapplication.ui.screen.home.PhotoDetailScreen
 import com.example.androidapplication.ui.screen.resetpassword.ResetPasswordScreen
 import com.example.androidapplication.ui.screen.registration.RegistrationScreen
+import com.example.androidapplication.ui.screen.genrerai.GenreraiScreen
+import com.example.androidapplication.ui.screen.studio.StudioScreen
+import com.example.androidapplication.ui.screen.magicpaintbrush.MagicPaintbrushScreen
+import com.example.androidapplication.ui.screen.portfolio.PortfolioScreen
+import com.example.androidapplication.ui.screen.portfolio.PaintingDetailScreen
+import com.example.androidapplication.ui.avatargenerator.AvatarGeneratorScreen
 import com.example.androidapplication.models.artiste.ArtistViewModel
 import java.net.URLDecoder
 
@@ -310,9 +316,157 @@ fun ScreenContainer() {
                 famousWorks = famousWorks
             )
         }
+
+        composable(
+            route = NavGraph.Genrerai.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            GenreraiScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.Studio.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            StudioScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.Portfolio.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            PortfolioScreen(
+                navController = navHost,
+                photoViewModel = photoViewModel
+            )
+        }
+
+        composable(
+            route = "${NavGraph.PaintingDetail.route}/{paintingId}",
+            arguments = listOf(
+                navArgument("paintingId") { type = NavType.StringType }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val paintingId = backStackEntry.arguments?.getString("paintingId") ?: ""
+            PaintingDetailScreen(
+                navController = navHost, 
+                paintingId = paintingId,
+                photoViewModel = photoViewModel
+            )
+        }
+
+        composable(
+            route = "${NavGraph.MagicPaintbrush.route}?imageUrl={imageUrl}&photoId={photoId}",
+            arguments = listOf(
+                navArgument("imageUrl") { 
+                    type = NavType.StringType 
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("photoId") { 
+                    type = NavType.StringType 
+                    nullable = true
+                    defaultValue = null
+                }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
+            val photoId = backStackEntry.arguments?.getString("photoId")
+            
+            val imageUrl = if (encodedUrl != null) {
+                try {
+                    URLDecoder.decode(encodedUrl, "UTF-8")
+                } catch (e: Exception) {
+                    encodedUrl
+                }
+            } else {
+                null
+            }
+            
+            MagicPaintbrushScreen(
+                navController = navHost, 
+                photoViewModel = photoViewModel,
+                initialImageUrl = imageUrl,
+                photoId = photoId
+            )
+        }
+
+
+
+        composable(
+            route = NavGraph.AvatarGenerator.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            AvatarGeneratorScreen()
+        }
     }
 
 }
-
-
-
