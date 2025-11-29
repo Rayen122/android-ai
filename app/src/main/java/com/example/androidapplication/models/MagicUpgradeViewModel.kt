@@ -142,11 +142,18 @@ class MagicUpgradeViewModel(application: Application) : AndroidViewModel(applica
 
                 val uploadResponse = RetrofitClient.photoInstance.uploadPhoto(
                     "Bearer $token",
+<<<<<<< HEAD
                     titleBody,
                     descriptionBody,
                     isPortfolioBody,
                     isPortfolioBody, // Send same value for is_portfolio
                     photoPart
+=======
+                    photoPart,
+                    titleBody,
+                    descriptionBody,
+                    isPortfolioBody
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 )
 
                 if (uploadResponse.isSuccessful) {

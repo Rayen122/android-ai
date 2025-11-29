@@ -462,6 +462,7 @@ fun ScreenContainer() {
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
+<<<<<<< HEAD
             AvatarGeneratorScreen(navController = navHost)
         }
 
@@ -550,6 +551,9 @@ fun ScreenContainer() {
             }
         ) {
             ArtCriticScreen(navController = navHost)
+=======
+            AvatarGeneratorScreen()
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
         }
     }
 

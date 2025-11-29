@@ -119,6 +119,7 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+<<<<<<< HEAD
     private val _portfolioPhotos = MutableLiveData<List<Photo>>()
     val portfolioPhotos: LiveData<List<Photo>> get() = _portfolioPhotos
 
@@ -193,6 +194,8 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     fun uploadPhoto(bitmap: Bitmap, title: String?, description: String?, isPortfolio: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -220,9 +223,13 @@ class PhotoViewModel(application: Application) : AndroidViewModel(application) {
                     "Bearer $token",
                     titleBody,
                     descriptionBody,
+<<<<<<< HEAD
                     isPortfolioBody,
                     isPortfolioBody, // Send same value for is_portfolio
                     photoPart
+=======
+                    isPortfolioBody
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 )
 
                 if (response.isSuccessful) {

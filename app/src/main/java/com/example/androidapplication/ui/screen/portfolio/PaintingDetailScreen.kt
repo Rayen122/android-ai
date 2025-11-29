@@ -6,7 +6,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Edit
+<<<<<<< HEAD
 import androidx.compose.material.icons.filled.Save
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
@@ -22,13 +25,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+<<<<<<< HEAD
 import coil.ImageLoader
 import coil.request.ImageRequest
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import com.example.androidapplication.models.MagicUpgradeViewModel
 import com.example.androidapplication.models.PhotoViewModel
 import com.example.androidapplication.ui.components.BackButton
 import com.example.androidapplication.ui.container.NavGraph
+<<<<<<< HEAD
 import android.widget.Toast
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -38,6 +47,7 @@ fun PaintingDetailScreen(
     paintingId: String,
     photoViewModel: PhotoViewModel = viewModel(key = "shared_photo_viewmodel")
 ) {
+<<<<<<< HEAD
     val context = LocalContext.current
     val imageLoader = remember { ImageLoader(context) }
     
@@ -57,6 +67,12 @@ fun PaintingDetailScreen(
         if (convertedImageUrl != null || sketchImageUrl != null) {
             showConvertedImage = true
         }
+=======
+    val myPhotos by photoViewModel.myPhotos.observeAsState(initial = emptyList())
+    
+    val painting = remember(myPhotos, paintingId) {
+        myPhotos.find { it.id == paintingId }
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     }
 
     Box(
@@ -65,6 +81,7 @@ fun PaintingDetailScreen(
             .background(Color.Black) // Dark background for immersive view
     ) {
         if (painting != null) {
+<<<<<<< HEAD
             // Afficher l'image convertie si disponible, sinon l'image originale
             val imageToShow = if (showConvertedImage && (convertedImageUrl != null || sketchImageUrl != null)) {
                 convertedImageUrl ?: sketchImageUrl
@@ -75,6 +92,11 @@ fun PaintingDetailScreen(
             // Full screen image
             AsyncImage(
                 model = imageToShow,
+=======
+            // Full screen image
+            AsyncImage(
+                model = painting.imageUrl,
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 contentDescription = "Painting",
                 modifier = Modifier
                     .fillMaxSize()
@@ -93,7 +115,11 @@ fun PaintingDetailScreen(
                 BackButton(navController = navController)
             }
 
+<<<<<<< HEAD
             // Bottom Bar with Edit, Magic, Black & White, and Save Buttons (Overlay)
+=======
+            // Bottom Bar with Edit and Magic Buttons (Overlay)
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -113,13 +139,22 @@ fun PaintingDetailScreen(
                     Text("Edit Painting")
                 }
 
+<<<<<<< HEAD
+=======
+                val context = LocalContext.current
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 // Use the new MagicUpgradeViewModel
                 val magicUpgradeViewModel: com.example.androidapplication.models.MagicUpgradeViewModel = viewModel()
                 val isMagicUpgrading by magicUpgradeViewModel.isMagicUpgrading.observeAsState(initial = false)
 
                 Button(
                     onClick = {
+<<<<<<< HEAD
                         val req = ImageRequest.Builder(context)
+=======
+                        val loader = coil.ImageLoader(context)
+                        val req = coil.request.ImageRequest.Builder(context)
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                             .data(painting.imageUrl)
                             .target { result ->
                                 val bitmap = (result as android.graphics.drawable.BitmapDrawable).bitmap
@@ -129,7 +164,11 @@ fun PaintingDetailScreen(
                                 }
                             }
                             .build()
+<<<<<<< HEAD
                         imageLoader.enqueue(req)
+=======
+                        loader.enqueue(req)
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EE).copy(alpha = 0.8f)),
                     shape = RoundedCornerShape(50),
@@ -147,6 +186,7 @@ fun PaintingDetailScreen(
                         Text("Magic")
                     }
                 }
+<<<<<<< HEAD
                 
                 // Noir et blanc Button
                 Button(
@@ -215,6 +255,8 @@ fun PaintingDetailScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Save")
                 }
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
             }
         } else {
             CircularProgressIndicator(

@@ -92,9 +92,13 @@ interface PhotoApiService {
         @Header("Authorization") token: String,
         @Part("title") title: RequestBody?,
         @Part("description") description: RequestBody?,
+<<<<<<< HEAD
         @Part("isPortfolio") isPortfolio: RequestBody? = null,
         @Part("is_portfolio") isPortfolioSnake: RequestBody? = null,
         @Part photo: MultipartBody.Part
+=======
+        @Part("isPortfolio") isPortfolio: RequestBody? = null
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     ): Response<UploadPhotoResponse>
 
     @POST("photos/{id}/convert-to-sketch")
@@ -115,6 +119,7 @@ interface PhotoApiService {
         @Header("Authorization") token: String,
         @retrofit2.http.Path("id") id: String
     ): Response<Unit>
+<<<<<<< HEAD
 
     @Multipart
     @POST("/auth/upload-profile-image")
@@ -178,6 +183,8 @@ interface LikeApiService {
         @Header("Authorization") token: String,
         @retrofit2.http.Path("id") photoId: String
     ): Response<LikeResponse>
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 }
 
 interface NotificationApiService {
@@ -263,9 +270,12 @@ interface StableDiffusionApiService {
 }
 
 interface PortfolioApiService {
+<<<<<<< HEAD
     @GET("portfolio")
     suspend fun getPortfolio(@Header("Authorization") token: String): Response<List<Photo>>
 
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     @retrofit2.http.DELETE("portfolio/{id}")
     suspend fun deletePortfolioItem(
         @Header("Authorization") token: String,
@@ -331,6 +341,7 @@ object RetrofitClient {
             .build()
             .create(PortfolioApiService::class.java)
     }
+<<<<<<< HEAD
 
     val sketchInstance: SketchApiService by lazy {
         Retrofit.Builder()
@@ -400,5 +411,7 @@ data class PaintingProcessStep(
 interface PaintingProcessApi {
     @POST("painting-process")
     suspend fun generatePaintingProcess(@Body request: PaintingProcessRequest): List<PaintingProcessStep>
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 }
 

@@ -10,15 +10,22 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+<<<<<<< HEAD
+=======
+import androidx.compose.material.icons.filled.ArrowBack
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Brush
 import androidx.compose.material.icons.filled.PhotoFilter
+<<<<<<< HEAD
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Comment
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
@@ -27,8 +34,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+<<<<<<< HEAD
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+=======
+import androidx.compose.ui.graphics.Brush as GradientBrush
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -47,11 +58,14 @@ import androidx.compose.ui.res.painterResource
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import android.util.Log
+<<<<<<< HEAD
 import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import com.example.androidapplication.models.Photo
 import com.example.androidapplication.models.PhotoViewModel
 import com.example.androidapplication.models.LikeViewModel
@@ -79,6 +93,7 @@ private fun rememberImageLoader(context: android.content.Context): ImageLoader {
     }
 }
 
+<<<<<<< HEAD
 private fun downloadImage(context: Context, url: String, title: String) {
     try {
         val request = DownloadManager.Request(Uri.parse(url))
@@ -99,6 +114,8 @@ private fun downloadImage(context: Context, url: String, title: String) {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 @Composable
 fun PhotoDetailScreen(
     photoId: String,
@@ -118,6 +135,7 @@ fun PhotoDetailScreen(
     val convertedImageUrl by photoViewModel.convertedImageUrl.observeAsState(initial = null)
     val error by photoViewModel.error.observeAsState(initial = "")
     
+<<<<<<< HEAD
     // Like and Comment ViewModels
     val likeViewModel: LikeViewModel = viewModel()
     val commentViewModel: CommentViewModel = viewModel()
@@ -172,6 +190,11 @@ fun PhotoDetailScreen(
             commentViewModel.clearAddCommentSuccess()
         }
     }
+=======
+    var isVisible by remember { mutableStateOf(false) }
+    var showConvertedImage by remember { mutableStateOf(false) }
+    var showConversionMenu by remember { mutableStateOf(false) }
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     
     LaunchedEffect(Unit) {
         isVisible = true
@@ -242,6 +265,7 @@ fun PhotoDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
+<<<<<<< HEAD
                 Brush.verticalGradient(
                     colors = listOf(
                         Color(0xFF0F0F1E),
@@ -251,6 +275,12 @@ fun PhotoDetailScreen(
                     ),
                     startY = 0f,
                     endY = Float.POSITIVE_INFINITY
+=======
+                GradientBrush.verticalGradient(
+                    0f to PrimaryYellowDark,
+                    0.6f to PrimaryYellowLight,
+                    1f to PrimaryYellowLight,
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 )
             )
     ) {

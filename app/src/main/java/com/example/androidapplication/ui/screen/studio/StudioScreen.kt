@@ -1,5 +1,6 @@
 package com.example.androidapplication.ui.screen.studio
 
+<<<<<<< HEAD
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,11 +8,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+=======
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brush
+<<<<<<< HEAD
 import androidx.compose.material.icons.filled.Edit
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Mood
@@ -20,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+<<<<<<< HEAD
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +38,18 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+=======
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+<<<<<<< HEAD
 import com.example.androidapplication.ui.components.BackButton
 import com.example.androidapplication.ui.components.BottomNavigationBar
 import com.example.androidapplication.ui.container.NavGraph
@@ -103,6 +121,13 @@ fun StudioScreen(navController: NavController) {
         label = "glowPulse"
     )
 
+=======
+import com.example.androidapplication.ui.components.BottomNavigationBar
+import com.example.androidapplication.ui.container.NavGraph
+
+@Composable
+fun StudioScreen(navController: NavController) {
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController = navController)
@@ -117,15 +142,21 @@ fun StudioScreen(navController: NavController) {
                         colors = listOf(
                             Color(0xFF0F0F1E),
                             Color(0xFF1A1A2E),
+<<<<<<< HEAD
                             Color(0xFF16213E),
                             PrimaryYellowDark.copy(alpha = 0.3f + gradientOffset1 * 0.2f)
                         ),
                         startY = 0f,
                         endY = Float.POSITIVE_INFINITY
+=======
+                            Color(0xFF16213E)
+                        )
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                     )
                 )
                 .padding(paddingValues)
         ) {
+<<<<<<< HEAD
             // Animated decorative elements
             Box(
                 modifier = Modifier.fillMaxSize()
@@ -233,11 +264,14 @@ fun StudioScreen(navController: NavController) {
                 }
             }
 
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(18.dp)
             ) {
+<<<<<<< HEAD
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 24.dp)
@@ -251,6 +285,15 @@ fun StudioScreen(navController: NavController) {
                         color = Color.White
                     )
                 }
+=======
+                Text(
+                    text = "Studio",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 
                 Column(
                     modifier = Modifier
@@ -260,7 +303,11 @@ fun StudioScreen(navController: NavController) {
                 ) {
                     // Card 1: Magic Paintbrush
                     StudioCard(
+<<<<<<< HEAD
                         title = "My painting",
+=======
+                        title = "Magic Paintbrush",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                         subtitle = "Draw your soulmate",
                         icon = Icons.Default.Brush,
                         onClick = { navController.navigate(NavGraph.MagicPaintbrush.route) }
@@ -268,10 +315,17 @@ fun StudioScreen(navController: NavController) {
 
                     // Card 2: Draw Your Mood
                     StudioCard(
+<<<<<<< HEAD
                         title = "Coloring",
                         subtitle = "Visualize your daily mood",
                         icon = Icons.Default.Mood,
                         onClick = { navController.navigate(NavGraph.SketchSearch.route) }
+=======
+                        title = "Draw Your Mood",
+                        subtitle = "Visualize your daily mood",
+                        icon = Icons.Default.Mood,
+                        onClick = { /* TODO: Navigate to Draw Your Mood */ }
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                     )
 
                     // Card 3: Image Référence
@@ -281,6 +335,7 @@ fun StudioScreen(navController: NavController) {
                         icon = Icons.Default.Image,
                         onClick = { navController.navigate(NavGraph.Genrerai.route) }
                     )
+<<<<<<< HEAD
 
                     // Card 4: Painting Process (Making-Of)
                     StudioCard(
@@ -297,6 +352,8 @@ fun StudioScreen(navController: NavController) {
                         icon = Icons.Default.Edit,
                         onClick = { navController.navigate(NavGraph.Sketch.route) }
                     )
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 }
             }
         }
@@ -315,12 +372,16 @@ fun StudioCard(
             .fillMaxWidth()
             .height(160.dp)
             .background(
+<<<<<<< HEAD
                 color = Color.Transparent,
                 shape = RoundedCornerShape(24.dp)
             )
             .border(
                 width = 1.dp,
                 color = Color.White.copy(alpha = 0.3f),
+=======
+                color = Color.White,
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                 shape = RoundedCornerShape(24.dp)
             )
             .clickable(onClick = onClick)
@@ -333,13 +394,21 @@ fun StudioCard(
                 text = title,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+<<<<<<< HEAD
                 color = Color.White
+=======
+                color = Color.Black
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = subtitle,
                 fontSize = 16.sp,
+<<<<<<< HEAD
                 color = Color.LightGray
+=======
+                color = Color.Gray
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
             )
         }
         

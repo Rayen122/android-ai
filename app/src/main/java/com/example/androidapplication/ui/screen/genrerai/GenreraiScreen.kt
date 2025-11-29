@@ -76,7 +76,11 @@ fun GenreraiScreen(navController: NavController) {
             ) {
                 // Title
                 Text(
+<<<<<<< HEAD
                     text = "Tutoriel de Dessin",
+=======
+                    text = "Images de Référence",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
@@ -85,7 +89,11 @@ fun GenreraiScreen(navController: NavController) {
                 
                 // Subtitle
                 Text(
+<<<<<<< HEAD
                     text = "Apprenez à dessiner étape par étape",
+=======
+                    text = "Trouvez des images de référence pour vous inspirer",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -105,7 +113,11 @@ fun GenreraiScreen(navController: NavController) {
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
+<<<<<<< HEAD
                             text = "Que voulez-vous apprendre à dessiner ?",
+=======
+                            text = "Décrivez ce que vous cherchez",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -208,7 +220,11 @@ fun GenreraiScreen(navController: NavController) {
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {
                         Text(
+<<<<<<< HEAD
                             text = "Tutoriel étape par étape",
+=======
+                            text = "Processus de création étape par étape",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -216,7 +232,11 @@ fun GenreraiScreen(navController: NavController) {
                         )
                         
                         Text(
+<<<<<<< HEAD
                             text = "${generatedImages.size} étapes pour apprendre à dessiner",
+=======
+                            text = "${generatedImages.size} images générées pour illustrer chaque étape de création",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.8f),
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -224,7 +244,11 @@ fun GenreraiScreen(navController: NavController) {
                         
                         // Indicateur de progression
                         val progressValue = remember(generatedImages.size) {
+<<<<<<< HEAD
                             (generatedImages.size / 4f).coerceIn(0f, 1f)
+=======
+                            (generatedImages.size / 6f).coerceIn(0f, 1f)
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                         }
                         LinearProgressIndicator(
                             progress = progressValue,
@@ -258,7 +282,11 @@ fun GenreraiScreen(navController: NavController) {
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
+<<<<<<< HEAD
                                 text = "Aucun tutoriel généré",
+=======
+                                text = "Aucune image de référence",
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
                                 color = Color.White.copy(alpha = 0.5f)
                             )
                             Text(
@@ -315,6 +343,7 @@ private fun rememberImageLoader(context: android.content.Context): ImageLoader {
 private fun getStageInfo(index: Int): StageInfo {
     val stages = listOf(
         StageInfo(
+<<<<<<< HEAD
             label = "Étape 1: Formes de base",
             description = "Commencez par des formes simples (cercles, ovales) pour établir les proportions"
         ),
@@ -329,11 +358,39 @@ private fun getStageInfo(index: Int): StageInfo {
         StageInfo(
             label = "Étape 4: Ombres et finitions",
             description = "Finalisez avec les ombres, les lumières et les touches finales"
+=======
+            label = "Étape 1: Croquis initial",
+            description = "Premier croquis au crayon, esquisse de base avec les lignes principales et la composition générale"
+        ),
+        StageInfo(
+            label = "Étape 2: Application des couleurs",
+            description = "Ajout des couleurs de base, colorisation plate pour établir la palette et les zones principales"
+        ),
+        StageInfo(
+            label = "Étape 3: Ajout des détails",
+            description = "Raffinement avec ajout de détails, textures et éléments spécifiques pour enrichir l'œuvre"
+        ),
+        StageInfo(
+            label = "Étape 4: Finitions finales",
+            description = "Travail final sur les ombres, lumières et détails pour polir et finaliser l'œuvre complète"
+        ),
+        StageInfo(
+            label = "Référence artistique",
+            description = "Exemple de style artistique et d'inspiration pour guider votre propre création"
+        ),
+        StageInfo(
+            label = "Technique artistique",
+            description = "Illustration des méthodes et techniques utilisées dans le processus de création"
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
         )
     )
     return if (index < stages.size) stages[index] else StageInfo(
         label = "Étape ${index + 1}",
+<<<<<<< HEAD
         description = "Étape supplémentaire du tutoriel"
+=======
+        description = "Image de référence supplémentaire"
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
     )
 }
 

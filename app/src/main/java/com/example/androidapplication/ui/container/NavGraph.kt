@@ -38,6 +38,7 @@ sealed class NavGraph(val route: String) {
     data object PaintingDetail: NavGraph(route = "painting_detail_screen")
 
     data object AvatarGenerator: NavGraph(route = "avatar_generator")
+<<<<<<< HEAD
 
     data object SketchSearch: NavGraph(route = "sketch_search_screen")
     
@@ -48,4 +49,6 @@ sealed class NavGraph(val route: String) {
     data object StoryViewer: NavGraph(route = "story_viewer_screen")
     
     data object ArtCritic: NavGraph(route = "art_critic_screen")
+=======
+>>>>>>> d32fa832c5f99342b04ee59547cc09b7371be886
 }
