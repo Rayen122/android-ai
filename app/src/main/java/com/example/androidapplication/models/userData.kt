@@ -16,6 +16,7 @@ data class UserDataResponse(
     val targetWeight: Int,  // Change to Int
     val currentWeight: Int,
     val calories: Int,
+    val profileImageUrl: String? = null,  // ✅ AJOUT
 // Change to Int
     val age: Int
 )

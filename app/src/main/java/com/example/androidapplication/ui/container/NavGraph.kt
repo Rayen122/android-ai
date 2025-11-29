@@ -27,4 +27,25 @@ sealed class NavGraph(val route: String) {
     
     data object Album: NavGraph(route = "album_screen")
 
+    data object Genrerai: NavGraph(route = "genrerai_screen")
+
+    data object Studio: NavGraph(route = "studio_screen")
+
+    data object MagicPaintbrush: NavGraph(route = "magic_paintbrush_screen")
+
+    data object Portfolio: NavGraph(route = "portfolio_screen")
+
+    data object PaintingDetail: NavGraph(route = "painting_detail_screen")
+
+    data object AvatarGenerator: NavGraph(route = "avatar_generator")
+
+    data object SketchSearch: NavGraph(route = "sketch_search_screen")
+    
+    data object PaintingProcess: NavGraph(route = "painting_process_screen")
+    
+    data object Sketch: NavGraph(route = "sketch_screen")
+    
+    data object StoryViewer: NavGraph(route = "story_viewer_screen")
+    
+    data object ArtCritic: NavGraph(route = "art_critic_screen")
 }

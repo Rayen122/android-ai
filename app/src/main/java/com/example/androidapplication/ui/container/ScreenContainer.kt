@@ -25,7 +25,18 @@ import com.example.androidapplication.ui.screen.notifications.NotificationsScree
 import com.example.androidapplication.ui.screen.home.PhotoDetailScreen
 import com.example.androidapplication.ui.screen.resetpassword.ResetPasswordScreen
 import com.example.androidapplication.ui.screen.registration.RegistrationScreen
+import com.example.androidapplication.ui.screen.genrerai.GenreraiScreen
+import com.example.androidapplication.ui.screen.studio.StudioScreen
+import com.example.androidapplication.ui.screen.magicpaintbrush.MagicPaintbrushScreen
+import com.example.androidapplication.ui.screen.portfolio.PortfolioScreen
+import com.example.androidapplication.ui.screen.portfolio.PaintingDetailScreen
+import com.example.androidapplication.ui.avatargenerator.AvatarGeneratorScreen
 import com.example.androidapplication.models.artiste.ArtistViewModel
+import com.example.androidapplication.ui.screen.sketch.SketchSearchScreen
+import com.example.androidapplication.ui.sketch.SketchScreen
+import com.example.androidapplication.models.story.StoryViewModel
+import com.example.androidapplication.ui.screen.artcritic.ArtCriticScreen
+import com.example.androidapplication.ui.screen.story.StoryViewerScreen
 import java.net.URLDecoder
 
 
@@ -36,6 +47,7 @@ fun ScreenContainer() {
     val context = LocalContext.current
     val artistViewModel: ArtistViewModel = viewModel()
     val photoViewModel: com.example.androidapplication.models.PhotoViewModel = viewModel(key = "shared_photo_viewmodel")
+    val storyViewModel: StoryViewModel = viewModel(key = "shared_story_viewmodel")
 
     val (accessToken, refreshToken) = getSavedTokens(context)
     val startDestination = if (!refreshToken.isNullOrEmpty()) {
@@ -131,7 +143,7 @@ fun ScreenContainer() {
                 ) + fadeOut(animationSpec = tween(300))
             }
         ) {
-            HomeScreen(navController = navHost, photoViewModel = photoViewModel)
+            HomeScreen(navController = navHost, photoViewModel = photoViewModel, storyViewModel = storyViewModel)
         }
 
         composable(
@@ -263,12 +275,9 @@ fun ScreenContainer() {
         }
 
         composable(
-            route = "artistDetail/{artistName}/{styleDescription}/{country}/{famousWorks}",
+            route = "artistDetail/{artistName}",
             arguments = listOf(
-                navArgument("artistName") { type = NavType.StringType },
-                navArgument("styleDescription") { type = NavType.StringType },
-                navArgument("country") { type = NavType.StringType },
-                navArgument("famousWorks") { type = NavType.StringType }
+                navArgument("artistName") { type = NavType.StringType }
             ),
             enterTransition = {
                 slideInVertically(
@@ -297,22 +306,251 @@ fun ScreenContainer() {
         ) { backStackEntry ->
             // Retrieve arguments from the backStackEntry
             val artistName = URLDecoder.decode(backStackEntry.arguments?.getString("artistName") ?: "", "UTF-8")
-            val styleDescription = URLDecoder.decode(backStackEntry.arguments?.getString("styleDescription") ?: "", "UTF-8")
-            val country = URLDecoder.decode(backStackEntry.arguments?.getString("country") ?: "", "UTF-8")
-            val famousWorks = URLDecoder.decode(backStackEntry.arguments?.getString("famousWorks") ?: "", "UTF-8")
-
 
             ArtistDetailScreen(
                 navController = navHost,
-                artistName = artistName,
-                styleDescription = styleDescription,
-                country = country,
-                famousWorks = famousWorks
+                artistViewModel = artistViewModel,
+                artistName = artistName
             )
+        }
+
+        composable(
+            route = NavGraph.Genrerai.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            GenreraiScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.Studio.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            StudioScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.Portfolio.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            PortfolioScreen(
+                navController = navHost,
+                photoViewModel = photoViewModel
+            )
+        }
+
+        composable(
+            route = "${NavGraph.PaintingDetail.route}/{paintingId}",
+            arguments = listOf(
+                navArgument("paintingId") { type = NavType.StringType }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val paintingId = backStackEntry.arguments?.getString("paintingId") ?: ""
+            PaintingDetailScreen(
+                navController = navHost, 
+                paintingId = paintingId,
+                photoViewModel = photoViewModel
+            )
+        }
+
+        composable(
+            route = "${NavGraph.MagicPaintbrush.route}?imageUrl={imageUrl}&photoId={photoId}",
+            arguments = listOf(
+                navArgument("imageUrl") { 
+                    type = NavType.StringType 
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("photoId") { 
+                    type = NavType.StringType 
+                    nullable = true
+                    defaultValue = null
+                }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("imageUrl")
+            val photoId = backStackEntry.arguments?.getString("photoId")
+            
+            val imageUrl = if (encodedUrl != null) {
+                try {
+                    URLDecoder.decode(encodedUrl, "UTF-8")
+                } catch (e: Exception) {
+                    encodedUrl
+                }
+            } else {
+                null
+            }
+            
+            MagicPaintbrushScreen(
+                navController = navHost, 
+                photoViewModel = photoViewModel,
+                initialImageUrl = imageUrl,
+                photoId = photoId
+            )
+        }
+
+
+
+        composable(
+            route = NavGraph.AvatarGenerator.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            AvatarGeneratorScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.SketchSearch.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            SketchSearchScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.PaintingProcess.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            com.example.androidapplication.ui.artiste.PaintingProcessScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.Sketch.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            SketchScreen(navController = navHost)
+        }
+
+        composable(
+            route = NavGraph.StoryViewer.route,
+            enterTransition = {
+                fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            StoryViewerScreen(
+                navController = navHost,
+                storyViewModel = storyViewModel
+            )
+        }
+
+        composable(
+            route = NavGraph.ArtCritic.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) {
+            ArtCriticScreen(navController = navHost)
         }
     }
 
 }
-
-
-

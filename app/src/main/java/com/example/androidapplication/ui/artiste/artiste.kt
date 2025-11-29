@@ -1,6 +1,5 @@
 package com.example.androidapplication.ui.artiste
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +10,7 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,10 +26,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,17 +48,31 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewModel = viewModel()) {
-    val artists by artistViewModel.artists
-    val isLoading by artistViewModel.isLoading
-    val error by artistViewModel.error
+fun ArtistListScreen(
+    navController: NavController,
+    artistsState: State<List<Artist>>? = null,
+    loadingState: State<Boolean>? = null,
+    errorState: State<String?>? = null,
+    artistViewModel: ArtistViewModel = viewModel()
+) {
+    // we use provided states for preview, otherwise real viewModel states
+    val artists by (artistsState ?: artistViewModel.artists)
+    val isLoading by (loadingState ?: artistViewModel.isLoading)
+    val error by (errorState ?: artistViewModel.error)
+
     var searchText by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
     val famousThemes = listOf("All", "Impressionism", "Renaissance", "Surrealism", "Abstract", "Pop Art")
-
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Multiple animated gradients for dynamic background - animations plus lentes
+    // Only call loadInitialArtists when using real viewModel (i.e., artistsState == null)
+    LaunchedEffect(Unit) {
+        if (artistsState == null) {
+            artistViewModel.loadInitialArtists()
+        }
+    }
+
+    // Animation states
     val infiniteTransition = rememberInfiniteTransition(label = "gradient")
     val gradientOffset1 by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -77,7 +93,6 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
         label = "gradientOffset2"
     )
     
-    // Floating particles animation - plus lente
     val particleOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -88,7 +103,6 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
         label = "particleOffset"
     )
     
-    // Pulsing effect for decorative elements - plus subtil
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 0.98f,
         targetValue = 1.02f,
@@ -99,7 +113,6 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
         label = "pulseScale"
     )
     
-    // Wave animation for dynamic background - plus lente
     val waveOffset by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -110,7 +123,6 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
         label = "waveOffset"
     )
     
-    // Glow pulse animation - plus subtil
     val glowPulse by infiniteTransition.animateFloat(
         initialValue = 0.7f,
         targetValue = 0.9f,
@@ -120,11 +132,6 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
         ),
         label = "glowPulse"
     )
-
-    // Load artists on first appearance
-    LaunchedEffect(Unit) {
-        artistViewModel.loadInitialArtists()
-    }
 
     Box(
         modifier = Modifier
@@ -146,7 +153,7 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top right animated circle - mouvement réduit
+            // Top right animated circle
             val topCircleX = 50.dp + (gradientOffset1 * 15).dp
             val topCircleY = (-50).dp + (gradientOffset2 * 10).dp
             Box(
@@ -162,12 +169,12 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                                 Color.Transparent
                             )
                         ),
-                        shape = androidx.compose.foundation.shape.CircleShape
+                        shape = CircleShape
                     )
                     .graphicsLayer(alpha = 0.6f + gradientOffset1 * 0.1f)
             )
             
-            // Bottom left animated circle - mouvement réduit
+            // Bottom left animated circle
             val bottomCircleX = (-30).dp - (gradientOffset2 * 10).dp
             val bottomCircleY = 100.dp + (gradientOffset1 * 15).dp
             Box(
@@ -183,21 +190,20 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                                 Color.Transparent
                             )
                         ),
-                        shape = androidx.compose.foundation.shape.CircleShape
+                        shape = CircleShape
                     )
                     .graphicsLayer(alpha = 0.5f + gradientOffset2 * 0.15f)
             )
             
-            // Enhanced floating particles effect with variety - réduit
+            // Floating particles
             repeat(8) { index ->
-                val angle = (particleOffset + index * 45f) * (kotlin.math.PI / 180f)
+                val angle = (particleOffset + index * 45f) * (Math.PI / 180f)
                 val radius = 100.dp + (gradientOffset1 * 40).dp + (index * 8).dp
                 val particleX = (cos(angle) * radius.value).dp
                 val particleY = (sin(angle) * radius.value).dp
                 val particleSize = (5.dp + (gradientOffset1 * 3).dp + ((index % 3) * 1.5).dp)
                 val particleAlpha = (0.25f + glowPulse * 0.15f - (index * 0.02f)).coerceIn(0.15f, 0.5f)
                 
-                // Varying colors for particles
                 val particleColor = when (index % 4) {
                     0 -> PrimaryYellowLight
                     1 -> PrimaryYellowDark
@@ -212,7 +218,7 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                         .offset(x = particleX, y = particleY)
                         .background(
                             particleColor.copy(alpha = particleAlpha),
-                            shape = androidx.compose.foundation.shape.CircleShape
+                            shape = CircleShape
                         )
                         .graphicsLayer(
                             alpha = particleAlpha,
@@ -221,13 +227,13 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                         )
                         .shadow(
                             elevation = 2.dp,
-                            shape = androidx.compose.foundation.shape.CircleShape,
+                            shape = CircleShape,
                             spotColor = particleColor.copy(alpha = 0.3f)
                         )
                 )
             }
             
-            // Additional wave effect layers - plus subtiles
+            // Wave effect layers
             repeat(2) { waveIndex ->
                 val waveY = (waveOffset * 150f + waveIndex * 80f) % 300f
                 Box(
@@ -249,10 +255,8 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                 )
             }
         }
-        
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+
+        Column(modifier = Modifier.fillMaxSize()) {
             // Header with title
             Row(
                 modifier = Modifier
@@ -267,22 +271,18 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.White,
-                    letterSpacing = (-0.5).sp,
-                    modifier = Modifier
-                        .graphicsLayer(
-                            alpha = 0.95f + gradientOffset1 * 0.05f
-                        )
+                    letterSpacing = (-0.5).sp
                 )
             }
 
             // Search Bar
             OutlinedTextField(
                 value = searchText,
-                onValueChange = { 
+                onValueChange = {
                     searchText = it
                     if (it.isNotEmpty()) {
                         selectedFilter = ""
-                        artistViewModel.fetchArtists(it)
+                        if (artistsState == null) artistViewModel.fetchArtists(it, isNameSearch = true)
                     }
                 },
                 modifier = Modifier
@@ -302,21 +302,12 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                     )
                 },
                 leadingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                PrimaryYellowDark.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = PrimaryYellowDark,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = PrimaryYellowDark,
+                        modifier = Modifier.size(22.dp)
+                    )
                 },
                 shape = RoundedCornerShape(16.dp),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -339,7 +330,7 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                     onSearch = {
                         if (searchText.isNotEmpty()) {
                             selectedFilter = ""
-                            artistViewModel.fetchArtists(searchText)
+                            if (artistsState == null) artistViewModel.fetchArtists(searchText, isNameSearch = true)
                         }
                         keyboardController?.hide()
                     }
@@ -362,10 +353,10 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                             selectedFilter = theme
                             if (theme == "All") {
                                 searchText = ""
-                                artistViewModel.fetchArtists("")
+                                if (artistsState == null) artistViewModel.fetchArtists("")
                             } else {
                                 searchText = theme
-                                artistViewModel.fetchArtists(theme)
+                                if (artistsState == null) artistViewModel.fetchArtists(theme)
                             }
                             keyboardController?.hide()
                         }
@@ -386,60 +377,34 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
                     text = "${artists.size} artist(s)",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
 
             // Artists List
             Box(modifier = Modifier.weight(1f)) {
                 if (isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = PrimaryYellowDark)
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFFF9800))
                     }
                 } else if (error != null) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = error ?: "Error loading artists",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 16.sp
-                        )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = error ?: "Error loading artists", color = Color.White, fontSize = 16.sp)
                     }
                 } else if (artists.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No artists found",
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 16.sp
-                        )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = "No artists found", color = Color.White.copy(alpha = 0.6f), fontSize = 16.sp)
                     }
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            start = 20.dp,
-                            end = 20.dp,
-                            top = 8.dp,
-                            bottom = 100.dp
-                        ),
-
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 100.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(artists) { artist ->
                             ArtistListItem(artist = artist) {
-                                val encodedStyleDescription =
-                                    URLEncoder.encode(artist.style_description, "UTF-8")
-                                val encodedFamousWorks =
-                                    URLEncoder.encode(artist.famous_works.joinToString(","), "UTF-8")
-                                navController.navigate("artistDetail/${artist.name}/${encodedStyleDescription}/${artist.country}/${encodedFamousWorks}")
+                                val encodedName = URLEncoder.encode(artist.name, "UTF-8")
+                                navController.navigate("artistDetail/$encodedName")
                             }
                         }
                     }
@@ -453,115 +418,60 @@ fun ArtistListScreen(navController: NavController, artistViewModel: ArtistViewMo
 }
 
 @Composable
-fun FilterButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
+fun FilterButton(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(
-                if (isSelected) PrimaryYellowDark.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.2f)
-            )
-            .shadow(
-                elevation = if (isSelected) 6.dp else 2.dp,
-                shape = RoundedCornerShape(20.dp),
-                spotColor = if (isSelected) PrimaryYellowDark.copy(alpha = 0.4f) else Color.Transparent
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(),
-                onClick = onClick
-            )
+            .background(if (isSelected) PrimaryYellowDark else Color.White.copy(alpha = 0.1f))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = rememberRipple(), onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
         Text(
-            text = text,
-            fontSize = 14.sp,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
-            color = Color.White
+            text = text, 
+            fontSize = 14.sp, 
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium, 
+            color = if (isSelected) Color.Black else Color.White.copy(alpha = 0.9f)
         )
     }
 }
 
 @Composable
 fun ArtistListItem(artist: Artist, onClick: () -> Unit) {
-    Card(
+    val imageSeed = artist.name.hashCode().toLong().let { if (it < 0) -it else it }
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = PrimaryYellowDark.copy(alpha = 0.3f)
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = rememberRipple(),
-                onClick = onClick
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp
-        )
+            .height(220.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(onClick = onClick)
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black.copy(alpha = 0.2f), spotColor = Color.Black.copy(alpha = 0.3f))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Artist Image with better seed handling
-            val imageSeed = artist.name.hashCode().toLong().let { if (it < 0) -it else it }
-            AsyncImage(
-                model = "https://picsum.photos/seed/$imageSeed/120/120",
-                contentDescription = "${artist.name} image",
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_gallery),
-                error = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_report_image)
-            )
+        // Background Image
+        AsyncImage(
+            model = artist.image_url ?: "https://picsum.photos/seed/$imageSeed/600/400",
+            contentDescription = "Portrait of ${artist.name}",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-            // Artist Details
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = artist.name,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    letterSpacing = 0.2.sp
-                )
-                
-                Text(
-                    text = artist.country,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White.copy(alpha = 0.9f),
-                    letterSpacing = 0.1.sp
-                )
-                
-                if (artist.style_description.isNotEmpty()) {
-                    Text(
-                        text = artist.style_description.take(80) + if (artist.style_description.length > 80) "..." else "",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(alpha = 0.8f),
-                        lineHeight = 20.sp,
-                        maxLines = 2
+        // Dark Gradient Overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                        startY = 200f,
+                        endY = Float.POSITIVE_INFINITY
                     )
-                }
-            }
+                )
+        )
+
+        // Text on bottom
+        Column(modifier = Modifier.align(Alignment.BottomStart).padding(20.dp)) {
+            Text(text = artist.name, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.2.sp)
+            Spacer(modifier = Modifier.height(6.dp))
         }
     }
 }
+

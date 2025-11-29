@@ -1,5 +1,4 @@
 package com.example.androidapplication.ui.screen.profile
-
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -44,6 +43,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Folder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -61,6 +61,7 @@ import com.example.androidapplication.ui.theme.PrimaryYellowLight
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
+import com.example.androidapplication.models.story.StoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,10 +75,15 @@ fun ProfileScreen(
     val token = getAccessToken(context)
     val logoutViewModel = remember { LogoutViewModel() }
     val logoutState by logoutViewModel.logoutState.collectAsState()
+    var showProfileOptions by remember { mutableStateOf(false) }
+
+    // Story ViewModel
+    val storyViewModel: StoryViewModel = viewModel(key = "shared_story_viewmodel")
 
     // Profile data
     val userData by profileViewModel.userData.observeAsState()
     val profileError by profileViewModel.error.observeAsState()
+    val uploadProfileImageSuccess by profileViewModel.uploadProfileImageSuccess.observeAsState(initial = false)
 
     // Photo data
     val myPhotos by photoViewModel.myPhotos.observeAsState(initial = emptyList())
@@ -89,20 +95,42 @@ fun ProfileScreen(
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var showUploadScreen by remember { mutableStateOf(false) }
+    var isStoryMode by remember { mutableStateOf(false) } // true = story, false = photo normale
 
-    // Image picker launcher
+    // Image picker launcher pour photo normale ou story
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            selectedImageUri = it
-            try {
                 val inputStream = context.contentResolver.openInputStream(it)
-                selectedBitmap = BitmapFactory.decodeStream(inputStream)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
                 inputStream?.close()
+
+            if (bitmap != null) {
+                if (isStoryMode) {
+                    // 🔥 Ajouter une story (loadStories est déjà appelé dans uploadStory)
+                    storyViewModel.uploadStory(context, bitmap)
+                } else {
+                    // 🔥 Ajouter une photo normale - ouvrir le dialog d'upload
+                    selectedBitmap = bitmap
                 showUploadScreen = true
-            } catch (e: Exception) {
-                Log.e("ProfileScreen", "Error loading image", e)
+                }
+            }
+        }
+    }
+
+    // Image picker launcher pour photo de profil
+    val profileImagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val inputStream = context.contentResolver.openInputStream(it)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            if (bitmap != null) {
+                // 🔥 Modifier photo de profil
+                profileViewModel.updateProfilePhoto(bitmap, context)
             }
         }
     }
@@ -148,6 +176,14 @@ fun ProfileScreen(
         } else if (!isLoadingPhotos && uploadError != null && uploadError!!.isNotEmpty() && showUploadScreen) {
             // Upload failed - keep dialog open to show error, but allow retry
             // Error will be shown in PhotoUploadScreen
+        }
+    }
+
+    // Handle profile image upload success
+    LaunchedEffect(uploadProfileImageSuccess) {
+        if (uploadProfileImageSuccess) {
+            kotlinx.coroutines.delay(2000)
+            profileViewModel.clearUploadProfileImageSuccess()
         }
     }
 
@@ -453,6 +489,15 @@ fun ProfileScreen(
                                     )
                                     .shadow(8.dp, shape = CircleShape)
                             ) {
+                                // Afficher la photo de profil si elle existe
+                                if (!userData?.profileImageUrl.isNullOrEmpty()) {
+                                    AsyncImage(
+                                        model = userData?.profileImageUrl?.replace("localhost", "10.0.2.2"),
+                                        contentDescription = "Profile Picture",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -467,6 +512,24 @@ fun ProfileScreen(
                                         contentDescription = "Profile",
                                         modifier = Modifier.size(50.dp),
                                         tint = PrimaryYellowDark
+                                        )
+                                    }
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.Black)
+                                        .clickable {
+                                            showProfileOptions = true   // 👈 Ouvre le menu
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Options",
+                                        tint = Color.White
                                     )
                                 }
                             }
@@ -535,6 +598,39 @@ fun ProfileScreen(
                                         fontSize = 14.sp,
                                         color = Color.White.copy(alpha = 0.8f),
                                         fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.height(24.dp))
+                            
+                            // Portfolio Button
+                            Button(
+                                onClick = { navController.navigate(NavGraph.Portfolio.route) },
+                                modifier = Modifier
+                                    .fillMaxWidth(0.8f)
+                                    .height(50.dp)
+                                    .shadow(8.dp, RoundedCornerShape(25.dp)),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF6C63FF), // Purple color for Portfolio
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(25.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.Folder,
+                                        contentDescription = "Portfolio",
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Mon Portfolio",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
@@ -613,6 +709,7 @@ fun ProfileScreen(
                                 if (selectedBitmap != null) {
                                     showUploadScreen = true
                                 } else {
+                                    isStoryMode = false  // Mode photo normale
                                     imagePickerLauncher.launch("image/*")
                                 }
                             },
@@ -673,6 +770,32 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = "Photo ajoutée avec succès !",
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+
+            // Success Message for profile image upload
+            AnimatedVisibility(
+                visible = uploadProfileImageSuccess,
+                enter = fadeIn(animationSpec = tween(400)) + slideInVertically(),
+                exit = fadeOut(animationSpec = tween(400))
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(8.dp, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFF00C853).copy(alpha = 0.9f)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Text(
+                        text = "Photo de profil mise à jour avec succès !",
                         modifier = Modifier.padding(16.dp),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -794,6 +917,58 @@ fun ProfileScreen(
                 photoViewModel.uploadPhoto(selectedBitmap!!, title, description)
             }
         )
+    }
+
+    // ModalBottomSheet pour choisir entre modifier photo de profil ou ajouter une story
+    if (showProfileOptions) {
+        ModalBottomSheet(
+            onDismissRequest = { showProfileOptions = false },
+            containerColor = Color(0xFF1A1A1A),
+            contentColor = Color.White
+        ) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "Choisir une action",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(20.dp))
+
+                // 📸 Modifier photo de profil
+                Button(
+                    onClick = {
+                        profileImagePickerLauncher.launch("image/*")
+                        showProfileOptions = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryYellowDark)
+                ) {
+                    Text("📸 Modifier photo de profil")
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                // 🟡 Ajouter une Story
+                Button(
+                    onClick = {
+                        isStoryMode = true
+                        imagePickerLauncher.launch("image/*")
+                        showProfileOptions = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryYellowLight)
+                ) {
+                    Text("🟡 Ajouter une Story")
+                }
+
+                Spacer(Modifier.height(30.dp))
+            }
+        }
     }
 }
 

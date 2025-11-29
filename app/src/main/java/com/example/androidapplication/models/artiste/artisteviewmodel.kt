@@ -18,14 +18,18 @@ class ArtistViewModel : ViewModel() {
     val currentTheme = mutableStateOf("") // Default theme - empty for "All"
     private var hasLoadedInitial = false
 
-    fun fetchArtists(theme: String) {
-        currentTheme.value = theme
+    fun fetchArtists(query: String, isNameSearch: Boolean = false) {
+        currentTheme.value = if (isNameSearch) "" else query
         isLoading.value = true
         error.value = null
         viewModelScope.launch {
             try {
-                Log.d("ArtistViewModel", "Fetching artists with theme: '$theme'")
-                val response = RetrofitClient.instance.getArtists(theme)
+                Log.d("ArtistViewModel", "Fetching artists with query: '$query', isNameSearch: $isNameSearch")
+                val response = if (isNameSearch) {
+                    RetrofitClient.instance.getArtists(null, query)
+                } else {
+                    RetrofitClient.instance.getArtists(query, null)
+                }
                 Log.d("ArtistViewModel", "Successfully fetched ${response.artists.size} artists")
                 artists.value = response.artists
                 hasLoadedInitial = true

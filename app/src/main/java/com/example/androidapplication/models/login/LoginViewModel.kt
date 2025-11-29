@@ -34,6 +34,26 @@ class LoginViewModel : ViewModel() {
         }
     }
 
+    fun loginWithGoogle(googleToken: String, context: Context) {
+        viewModelScope.launch {
+            _loginState.value = LoginState.Loading
+            try {
+                val response = RetrofitClient.instance.loginWithGoogle(GoogleLoginRequest(googleToken))
+                Log.d("LoginViewModel", "Google login successful. AccessToken: ${response.accessToken}")
+
+                // Save tokens
+                saveTokenToPreferences(context, response.accessToken, response.refreshToken, true)
+
+                _loginState.value = LoginState.Success("Google login successful")
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Google login failed", e)
+                _loginState.value = LoginState.Error(
+                    "Google login failed: ${e.localizedMessage ?: "Unknown error"}"
+                )
+            }
+        }
+    }
+
 }
 
 sealed class LoginState {

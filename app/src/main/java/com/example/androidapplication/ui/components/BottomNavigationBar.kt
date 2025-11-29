@@ -2,21 +2,17 @@ package com.example.androidapplication.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +26,7 @@ fun BottomNavigationBar(navController: NavController) {
     val currentRoute = navController.currentDestination?.route ?: NavGraph.Home.route
     val isHomeSelected = currentRoute == NavGraph.Home.route
     val isCameraSelected = currentRoute == NavGraph.Camera.route
-    val isAIEditorSelected = currentRoute == NavGraph.AIEditor.route
+    val isStudioSelected = currentRoute == NavGraph.Studio.route
     val isArtistSelected = currentRoute == NavGraph.ArtistList.route
     val isProfileSelected = currentRoute == NavGraph.Profile.route
 
@@ -53,8 +49,6 @@ fun BottomNavigationBar(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(),
                         onClick = {
                             if (currentRoute != NavGraph.Home.route) {
                                 navController.navigate(NavGraph.Home.route) {
@@ -83,8 +77,6 @@ fun BottomNavigationBar(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(),
                         onClick = {
                             navController.navigate(NavGraph.Camera.route) {
                                 popUpTo(NavGraph.Home.route)
@@ -106,15 +98,13 @@ fun BottomNavigationBar(navController: NavController) {
                 )
             }
 
-            // AI Editor
+            // Studio
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(),
                         onClick = {
-                            navController.navigate(NavGraph.AIEditor.route) {
+                            navController.navigate(NavGraph.Studio.route) {
                                 popUpTo(NavGraph.Home.route)
                             }
                         }
@@ -122,15 +112,15 @@ fun BottomNavigationBar(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    imageVector = Icons.Default.AutoAwesome,
-                    contentDescription = "AI Editor",
-                    tint = if (isAIEditorSelected) Color.White else Color.White.copy(alpha = 0.6f),
+                    imageVector = Icons.Default.Image,
+                    contentDescription = "Studio",
+                    tint = if (isStudioSelected) Color.White else Color.White.copy(alpha = 0.6f),
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
-                    text = "AI Editor",
+                    text = "Studio",
                     fontSize = 12.sp,
-                    color = if (isAIEditorSelected) Color.White else Color.White.copy(alpha = 0.6f)
+                    color = if (isStudioSelected) Color.White else Color.White.copy(alpha = 0.6f)
                 )
             }
 
@@ -139,8 +129,6 @@ fun BottomNavigationBar(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(),
                         onClick = {
                             navController.navigate(NavGraph.ArtistList.route) {
                                 popUpTo(NavGraph.Home.route)
@@ -167,8 +155,6 @@ fun BottomNavigationBar(navController: NavController) {
                 modifier = Modifier
                     .weight(1f)
                     .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(),
                         onClick = {
                             navController.navigate(NavGraph.Profile.route) {
                                 popUpTo(NavGraph.Home.route)
@@ -192,4 +178,3 @@ fun BottomNavigationBar(navController: NavController) {
         }
     }
 }
-

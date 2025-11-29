@@ -3,6 +3,7 @@ package com.example.androidapplication.models
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
@@ -15,16 +16,21 @@ import com.example.androidapplication.remote.ApiService
 import com.example.androidapplication.remote.RetrofitClient
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import com.example.androidapplication.models.ProfileRepository
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
     private val _logoutMessage = MutableLiveData<String>()
     val logoutMessage: LiveData<String> get() = _logoutMessage
 
     private val _userData = MutableLiveData<UserDataResponse>()
+    private val repository = ProfileRepository()   // 👈 AJOUT OBLIGATOIRE
     val userData: LiveData<UserDataResponse> get() = _userData
 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
+
+    private val _uploadProfileImageSuccess = MutableLiveData<Boolean>()
+    val uploadProfileImageSuccess: LiveData<Boolean> get() = _uploadProfileImageSuccess
 
 
     // Fetch user data using the token
@@ -62,9 +68,30 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun updateProfilePhoto(bitmap: Bitmap, context: Context) {
+        viewModelScope.launch {
+            _error.value = null
+            _uploadProfileImageSuccess.value = false
+            try {
+                val result = repository.uploadProfileImage(bitmap, context)  // ✅ CORRECT
+                if (result) {
+                    _uploadProfileImageSuccess.value = true
+                    fetchUserData()   // 🔄 refresh après upload
+                    Log.d("ProfileViewModel", "Profile image uploaded successfully")
+                } else {
+                    _error.value = "Failed to upload profile image"
+                    Log.e("ProfileViewModel", "Failed to upload profile image")
+                }
+            } catch (e: Exception) {
+                _error.value = "Error uploading profile image: ${e.localizedMessage}"
+                Log.e("ProfileViewModel", "Error uploading profile image", e)
+            }
+        }
+    }
 
-
-
+    fun clearUploadProfileImageSuccess() {
+        _uploadProfileImageSuccess.value = false
+    }
 
     /*fun logout(refreshToken: String) {
         viewModelScope.launch {

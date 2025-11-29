@@ -1,4 +1,6 @@
 package com.example.androidapplication.remote
+
+import com.google.gson.annotations.SerializedName
 import com.example.androidapplication.models.Password.ForgotPassword
 import com.example.androidapplication.models.Password.ResetPasswordRequest
 import com.example.androidapplication.models.Password.ResetPasswordResponse
@@ -15,9 +17,16 @@ import com.example.androidapplication.models.Notification
 import com.example.androidapplication.models.Photo
 import com.example.androidapplication.models.UnreadCountResponse
 import com.example.androidapplication.models.UploadPhotoResponse
+import com.example.androidapplication.models.artcritic.AICriticRequest
+import com.example.androidapplication.models.artcritic.AICriticReply
+import com.example.androidapplication.models.story.Story
+import com.example.androidapplication.models.Comment
+import com.example.androidapplication.models.CommentRequest
+import com.example.androidapplication.models.LikeResponse
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -43,6 +52,10 @@ interface ApiService {
 
     @POST("login")
     suspend fun loginUser(@Body request: LoginRequest): LoginResponse
+    
+    @POST("login/google")
+    suspend fun loginWithGoogle(@Body request: com.example.androidapplication.models.login.GoogleLoginRequest): LoginResponse
+    
     @GET("profile")
     suspend fun getUserProfile(@Header("Authorization") token: String): Response<UserDataResponse>
 
@@ -57,8 +70,17 @@ interface ApiService {
     @POST("verify-otp")
     suspend fun verifyOtp(@Body request: VerifyOtpRequest): VerifyOtpResponse
     @GET("artists")
-    suspend fun getArtists(@Query("theme") theme: String): ArtistListResponse
+    suspend fun getArtists(@Query("theme") theme: String?, @Query("name") name: String?): ArtistListResponse
 }
+
+data class ConvertToSketchResponse(
+    @SerializedName("message")
+    val message: String? = null,
+    @SerializedName("sketch_url")
+    val sketch_url: String? = null,
+    @SerializedName("error")
+    val error: String? = null
+)
 
 interface PhotoApiService {
     @GET("photos")
@@ -68,10 +90,94 @@ interface PhotoApiService {
     @POST("photos/upload")
     suspend fun uploadPhoto(
         @Header("Authorization") token: String,
-        @Part photo: MultipartBody.Part,
         @Part("title") title: RequestBody?,
-        @Part("description") description: RequestBody?
+        @Part("description") description: RequestBody?,
+        @Part("isPortfolio") isPortfolio: RequestBody? = null,
+        @Part("is_portfolio") isPortfolioSnake: RequestBody? = null,
+        @Part photo: MultipartBody.Part
     ): Response<UploadPhotoResponse>
+
+    @POST("photos/{id}/convert-to-sketch")
+    suspend fun convertToSketch(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") photoId: String
+    ): Response<ConvertToSketchResponse>
+
+    @POST("photos/{id}/convert")
+    suspend fun convertImage(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") photoId: String,
+        @Query("style") style: String
+    ): Response<ConvertToSketchResponse>
+
+    @retrofit2.http.DELETE("photos/{id}")
+    suspend fun deletePhoto(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") id: String
+    ): Response<Unit>
+
+    @Multipart
+    @POST("/auth/upload-profile-image")
+    suspend fun uploadProfileImage(
+        @Header("Authorization") token: String,
+        @Part file: MultipartBody.Part
+    ): Response<UserDataResponse>
+}
+
+interface StoryApiService {
+    @GET("stories")
+    suspend fun getStories(
+        @Header("Authorization") token: String
+    ): Response<List<Story>>
+
+    @Multipart
+    @POST("stories/upload")
+    suspend fun uploadStory(
+        @Header("Authorization") token: String,
+        @Part story: MultipartBody.Part
+    ): Response<Story>
+}
+
+interface ArtCriticApi {
+    @POST("critique")
+    suspend fun analyzeArt(
+        @Body request: AICriticRequest
+    ): AICriticReply
+}
+
+interface CommentApiService {
+    @GET("comments/{photoId}")
+    suspend fun getComments(
+        @Header("Authorization") token: String = "",
+        @retrofit2.http.Path("photoId") photoId: String
+    ): Response<List<Comment>>
+
+    @POST("comments/{photoId}")
+    suspend fun addComment(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("photoId") photoId: String,
+        @Body request: CommentRequest
+    ): Response<Comment>
+
+    @retrofit2.http.DELETE("comments/{id}")
+    suspend fun deleteComment(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") commentId: String
+    ): Response<Unit>
+}
+
+interface LikeApiService {
+    @GET("photos/{id}/like-status")
+    suspend fun checkLike(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") photoId: String
+    ): Response<LikeResponse>
+
+    @POST("photos/{id}/like")
+    suspend fun toggleLike(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") photoId: String
+    ): Response<LikeResponse>
 }
 
 interface NotificationApiService {
@@ -91,16 +197,93 @@ interface NotificationApiService {
     suspend fun markAllAsRead(@Header("Authorization") token: String): Response<Unit>
 }
 
+// Models for Stable Diffusion API
+data class StableDiffusionRequest(
+    val prompt: String,
+    val negative_prompt: String? = null,
+    val num_inference_steps: Int = 20,
+    val guidance_scale: Float = 7.5f,
+    val width: Int = 512,
+    val height: Int = 512,
+    val model: String = "stable-diffusion-v1-5" // or "stable-diffusion-xl"
+)
+
+data class StableDiffusionResponse(
+    @SerializedName("images")
+    val images: List<String>? = null, // Base64 encoded images
+    @SerializedName("image_urls")
+    val image_urls: List<String>? = null, // URLs if using external service
+    @SerializedName("status")
+    val status: String? = null,
+    @SerializedName("error")
+    val error: String? = null
+)
+
+data class GenerateVideoRequest(
+    val image: String // Base64 encoded image
+)
+
+data class GenerateAvatarRequest(
+    val image: String, // Base64
+    val style: String
+)
+
+data class GenerateAvatarResponse(
+    val imageUrl: String,
+    val status: String
+)
+
+data class MagicUpgradeRequest(
+    val image: String // Base64
+)
+
+data class MagicUpgradeResponse(
+    val imageUrl: String,
+    val status: String
+)
+
+interface StableDiffusionApiService {
+    @POST("generate")
+    suspend fun generateImage(
+        @Header("Authorization") token: String?,
+        @Body request: StableDiffusionRequest
+    ): Response<StableDiffusionResponse>
+
+    @POST("generate-avatar")
+    suspend fun generateAvatar(
+        @Header("Authorization") token: String?,
+        @Body request: GenerateAvatarRequest
+    ): Response<GenerateAvatarResponse>
+
+    @POST("magic-upgrade")
+    suspend fun magicUpgrade(
+        @Header("Authorization") token: String?,
+        @Body request: MagicUpgradeRequest
+    ): Response<MagicUpgradeResponse>
+}
+
+interface PortfolioApiService {
+    @GET("portfolio")
+    suspend fun getPortfolio(@Header("Authorization") token: String): Response<List<Photo>>
+
+    @retrofit2.http.DELETE("portfolio/{id}")
+    suspend fun deletePortfolioItem(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") id: String
+    ): Response<Unit>
+}
+
 object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:3000/auth/" // Change to your backend URL
     private const val PHOTOS_BASE_URL = "http://10.0.2.2:3000/" // Photos endpoint is at root level
+    private const val STABLE_DIFFUSION_BASE_URL = "http://10.0.2.2:3000/ai/" // Stable Diffusion endpoint
 
     // Create OkHttpClient with increased timeouts
     private val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(300, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(300, TimeUnit.SECONDS)
             .build()
     }
 
@@ -130,5 +313,92 @@ object RetrofitClient {
             .build()
             .create(NotificationApiService::class.java)
     }
+
+    val stableDiffusionInstance: StableDiffusionApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(STABLE_DIFFUSION_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(StableDiffusionApiService::class.java)
+    }
+
+    val portfolioInstance: PortfolioApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(PHOTOS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(PortfolioApiService::class.java)
+    }
+
+    val sketchInstance: SketchApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(PHOTOS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(SketchApiService::class.java)
+    }
+
+    val storyInstance: StoryApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(PHOTOS_BASE_URL)  // STORIES sont au même niveau que photos
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(StoryApiService::class.java)
+    }
+
+    val artCriticInstance: ArtCriticApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(STABLE_DIFFUSION_BASE_URL) // http://10.0.2.2:3000/ai/
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ArtCriticApi::class.java)
+    }
+
+    val paintingProcessInstance: PaintingProcessApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(PHOTOS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(PaintingProcessApi::class.java)
+    }
+
+    val commentInstance: CommentApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(PHOTOS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(CommentApiService::class.java)
+    }
+
+    val likeInstance: LikeApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(PHOTOS_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(LikeApiService::class.java)
+    }
+}
+
+data class PaintingProcessRequest(
+    @SerializedName("imageUrl") val imageUrl: String,
+    @SerializedName("style") val style: String
+)
+
+data class PaintingProcessStep(
+    @SerializedName("step") val step: String,
+    @SerializedName("url") val url: String
+)
+
+interface PaintingProcessApi {
+    @POST("painting-process")
+    suspend fun generatePaintingProcess(@Body request: PaintingProcessRequest): List<PaintingProcessStep>
 }
 

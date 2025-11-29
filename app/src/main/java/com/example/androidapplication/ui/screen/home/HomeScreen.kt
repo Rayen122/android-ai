@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.*
 import com.example.androidapplication.ui.components.BottomNavigationBar
@@ -54,12 +55,16 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
+import com.example.androidapplication.models.story.StoryViewModel
+import com.example.androidapplication.models.story.StoryUserGroup
+import com.example.androidapplication.ui.components.StoriesRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
-    photoViewModel: PhotoViewModel = viewModel(key = "shared_photo_viewmodel")
+    photoViewModel: PhotoViewModel = viewModel(key = "shared_photo_viewmodel"),
+    storyViewModel: StoryViewModel = viewModel(key = "shared_story_viewmodel")
 ) {
     val context = LocalContext.current
     val logoutViewModel = remember { LogoutViewModel() }
@@ -68,6 +73,7 @@ fun HomeScreen(
     val unreadCount by notificationViewModel.unreadCount.observeAsState(initial = 0)
     val profileViewModel: ProfileViewModel = viewModel()
     val userData by profileViewModel.userData.observeAsState()
+    val storyGroups by storyViewModel.storyGroups.collectAsState()
 
     // Photo data
     val photos by photoViewModel.photos.observeAsState(initial = emptyList())
@@ -77,10 +83,14 @@ fun HomeScreen(
     // Search state
     var searchQuery by remember { mutableStateOf("") }
     val filteredPhotos = remember(photos, searchQuery) {
+        val regularPhotos = photos.filter { photo -> 
+            photo.description?.contains("Created with Magic Paintbrush") != true 
+        }
+        
         if (searchQuery.isBlank()) {
-            photos
+            regularPhotos
         } else {
-            photos.filter { photo ->
+            regularPhotos.filter { photo ->
                 photo.userName?.contains(searchQuery, ignoreCase = true) == true
             }
         }
@@ -103,6 +113,7 @@ fun HomeScreen(
         photoViewModel.getAllPhotos()
         notificationViewModel.getUnreadCount()
         profileViewModel.fetchUserData()
+        storyViewModel.loadStories(context)    // 👈 Charger les stories
     }
 
     // Reload photos and user data when returning to HomeScreen from another screen
@@ -111,6 +122,7 @@ fun HomeScreen(
             // We're coming back to HomeScreen, reload photos and user data
             photoViewModel.getAllPhotos()
             profileViewModel.fetchUserData()
+            storyViewModel.loadStories(context)    // 👈 Recharger les stories
         }
         previousRoute = currentRoute
     }
@@ -501,6 +513,21 @@ fun HomeScreen(
                     singleLine = true
                 )
             }
+            
+            // Stories Section
+            if (storyGroups.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                StoriesRow(
+                    groups = storyGroups,
+                    onStoryClick = { group ->
+                        storyViewModel.openStories(group.stories)
+                        navController.navigate(NavGraph.StoryViewer.route)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             // Photos Grid
             Box(modifier = Modifier.weight(1f)) {
@@ -555,6 +582,21 @@ fun HomeScreen(
 
             // Bottom Navigation Bar
             BottomNavigationBar(navController = navController)
+        }
+
+        // Avatar Generator FAB
+        FloatingActionButton(
+            onClick = { navController.navigate(NavGraph.AvatarGenerator.route) },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 90.dp, end = 20.dp), // Above bottom nav
+            containerColor = PrimaryYellowLight,
+            contentColor = Color.Black
+        ) {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Avatar Generator"
+            )
         }
     }
 

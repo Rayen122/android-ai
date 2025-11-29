@@ -14,3 +14,7 @@ data class LoginResponse(
     val userName: String,
     val userEmail: String
 )
+
+data class GoogleLoginRequest(
+    val idToken: String
+)

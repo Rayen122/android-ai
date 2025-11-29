@@ -35,11 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.androidapplication.models.login.LoginState
 import com.example.androidapplication.models.login.LoginViewModel
+import com.example.androidapplication.ui.container.NavGraph
 import com.example.androidapplication.ui.theme.PrimaryYellowDark
 import com.example.androidapplication.ui.theme.PrimaryYellowLight
 import kotlinx.coroutines.delay
 import kotlin.math.cos
 import kotlin.math.sin
+import androidx.compose.ui.res.painterResource
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.ActivityResult
+import android.app.Activity
+import com.example.androidapplication.auth.GoogleAuthService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +59,29 @@ fun LoginScreen(
     val viewModel = remember { LoginViewModel() }
     val context = LocalContext.current
     val loginState by viewModel.loginState.collectAsState()
+    
+    // --- GOOGLE SIGN IN --- //
+    val googleAuthService = remember { GoogleAuthService(context) }
+
+    val googleLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            if (data != null) {
+                try {
+                    val token = googleAuthService.extractToken(data)
+                    Toast.makeText(context, "Google Token reçu ✔️", Toast.LENGTH_SHORT).show()
+
+                    // Appeler le backend pour login avec Google
+                    viewModel.loginWithGoogle(token, context)
+
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Erreur Google: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
     
     // Animation states - animations plus rapides
     var titleVisible by remember { mutableStateOf(false) }
@@ -843,6 +873,85 @@ fun LoginScreen(
                                     .graphicsLayer(
                                         alpha = 1f + (glowPulse - 0.75f) * 0.1f
                                     )
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // --- GOOGLE LOGIN BUTTON (ajoute ici juste après Se connecter !) ---
+            Spacer(modifier = Modifier.height(16.dp))
+
+            AnimatedVisibility(
+                visible = buttonsVisible,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessHigh
+                    )
+                ) + fadeIn(animationSpec = tween(300)),
+                exit = fadeOut()
+            ) {
+
+                val googleInteractionSource = remember { MutableInteractionSource() }
+                val isPressed by googleInteractionSource.collectIsPressedAsState()
+
+                val googleScale by animateFloatAsState(
+                    targetValue = if (isPressed) 0.97f else 1f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessHigh
+                    ),
+                    label = "googleScale"
+                )
+
+                val googleElevation by animateFloatAsState(
+                    targetValue = if (isPressed) 6f else 14f,
+                    animationSpec = tween(150),
+                    label = "googleElevation"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .scale(googleScale)
+                        .shadow(
+                            elevation = googleElevation.dp,
+                            shape = RoundedCornerShape(16.dp),
+                            spotColor = Color.White.copy(alpha = 0.25f)
+                        )
+                ) {
+                    Button(
+                        onClick = {
+                            val intent = googleAuthService.getSignInIntent()
+                            googleLauncher.launch(intent)
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        interactionSource = googleInteractionSource,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                painter = painterResource(id = com.example.androidapplication.R.drawable.ic_google),
+                                contentDescription = "Google Icon",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Continuer avec Google",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }

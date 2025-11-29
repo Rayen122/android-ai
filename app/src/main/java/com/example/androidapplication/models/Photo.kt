@@ -16,7 +16,13 @@ data class Photo(
     @SerializedName("description")
     val description: String?,
     @SerializedName("createdAt")
-    val createdAt: String?
+    val createdAt: String?,
+    @SerializedName("likesCount")
+    val likesCount: Int? = 0,
+    @SerializedName("commentsCount")
+    val commentsCount: Int? = 0,
+    @SerializedName("isLiked")
+    val isLiked: Boolean? = false
 )
 
 data class UploadPhotoResponse(
